@@ -1,0 +1,438 @@
+
+*{
+    box-sizing: border-box;
+    text-align: center;
+    font-family: quicksand;
+    transition-duration: 0.3s;
+    color: white;
+}
+
+@font-face {
+    font-family: quicksand;
+    src: url("./quicksand.ttf");
+}
+
+body{
+    margin: 0px;
+    top:0px;
+    left:0px;
+    background-image: url("../img/bicicloBackground.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin:auto;
+    display:block;
+    height: 100%;
+    background-color: #242424;
+    color: white;
+}
+
+header{
+    height: 50px;
+    background-color: rgb(39, 39, 39);
+    color: white;
+    font-weight: 400;
+    vertical-align: middle;
+    line-height: 50px;
+    text-align: center;
+    margin: auto;
+}
+
+header ul{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+header a{
+    color: white;
+    text-decoration: none;
+    margin:0px;
+}
+
+header a:visited{
+    color:white;
+    text-decoration:none;
+}
+
+header li{
+    float: right;
+    display: inline;
+    margin: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+header li:hover{
+    background-color: rgb(1, 144, 201);
+    cursor: pointer;
+}
+
+header li#title{
+    font-weight: 10%;
+    font-size: 250%;
+    text-shadow: 2px 2px 5px rgb(124, 124, 124);
+    text-align: center;
+    margin: auto;
+    float: none;
+    cursor:default;
+}
+
+header li#title:hover{
+    background-color: rgb(39, 39, 39);
+}
+
+div#container{
+    width: 30%;
+    margin-top: 50px;
+    margin: auto;
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border: 1px solid black;
+    margin-top: 50px;
+    overflow: hidden;
+    box-shadow: 2px 2px 5px black;
+    padding: 30px;
+}
+
+div#container form, div#container form div{
+    text-align: left;
+}
+
+input{
+    width: 100%;
+    height: 40px;
+    border: 1px solid black;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    outline: 0;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: 0px 5px 0px rgb(194, 194, 194);
+    color: black;
+}
+
+form.chginfo input, form.chginfo select{
+    width: 100%;
+}
+
+.selector{
+    width: 100%;
+    border-radius: 5px;
+    height: 33px;
+}
+
+.selector option{
+    height: 33px;
+    zoom: 1.3;
+}
+
+input{
+    border: none;
+}
+
+input:hover{
+    border: 1px solid deepskyblue;
+    transform: translateY(5px);
+    box-shadow: none;
+}
+
+input:focus{
+    border-bottom: 2px solid deepskyblue;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    outline: 0;
+    box-shadow: none;
+}
+
+input[type="submit"]{
+    border: 0px;
+    background-color: deepskyblue;
+    border-radius: 3px;
+    box-shadow: 0px 5px 0px rgb(0, 133, 177);
+    font-size: 125%;
+    width: 100%;
+}
+
+input[type="submit"].fullpage{
+    width: 40%;
+}
+
+input[type="submit"]:hover{
+    border: 0px;
+    background-color: rgb(138, 219, 247);
+    box-shadow: none;
+    cursor: pointer;
+}
+
+input[type="radio"]{
+    box-shadow: none;
+}
+
+input[type="checkbox"]{
+    box-shadow: none;
+}
+
+select{
+    width: 100%;
+    color: black;
+    margin: 15px 0px 15px 0px;
+}
+
+select option{
+    color: gray;
+}
+
+div#title{
+    text-align: center;
+    width: 100%;
+    font-weight: 200%;
+    font-size: 250%;
+    margin-top:5%;
+    margin-bottom: 5%;
+}
+
+tr :hover{
+    padding-top:10px;
+    padding-bottom: 10px;
+    transition: 0.3s;
+}
+
+ul#formnav{
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    padding: 0;
+}
+ul#formnav li{
+    vertical-align: middle;
+    line-height: 50px;
+    margin: 0px 3px 0px 3px;
+    display: inline;
+    flex: 30%;
+    background-color: white;
+    box-shadow: 0px 5px 0px rgb(0, 133, 177);
+    border-radius: 5px;
+    border: none;
+    color: black;
+    background-color: deepskyblue;
+    height: 50px;
+    overflow: hidden;
+}
+
+ul#formnav li:hover{
+    transform: translateY(5px);
+    box-shadow: none;
+    background-color: rgb(138, 219, 247);
+    cursor: pointer;
+}
+
+footer{
+    height: 70px;
+    background-color: rgb(0, 133, 177);
+    text-align: center;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+
+  @media screen and (max-width:830px) {
+    body{
+        top:0px;
+        left:0px;
+        background-image: url("../img/bicicloBackgroundTelefono.jpg");
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin:auto;
+        display:block;
+        background-position-y: 125px;
+        height: 100%;
+        background-color: #242424;
+        color: white;
+    }
+    header li {
+      width: 100%;
+      background-color: rgb(39, 39, 39);
+    }
+    header{
+        background-color: transparent;
+    }
+
+    header ul{
+        display: flex;
+        flex-direction: column;
+    }
+
+    header li#title{
+        font-weight: 10%;
+        font-size: 250%;
+        text-shadow: 2px 2px 5px rgb(124, 124, 124);
+        text-align: center;
+        margin: auto;
+        cursor:default;
+        height: 50%;
+        float:left;
+        order: -1;
+    }
+    
+    header li#title:hover{
+        background-color: rgb(39, 39, 39);
+    }
+    
+    
+    input{
+        text-align: center;
+        font-size: 60%;
+        height: 80px;
+    }
+
+    input{
+        font-size: 125%;
+    }
+
+    select{
+        font-size:125%;
+    }
+
+    input[type="submit"]{
+        font-size: 150%;
+        width: 85%;
+        text-align: center;
+    }
+
+    div#title{
+        font-size: 300%;
+        margin-top: 270px;
+        margin-bottom: 10px;
+    }
+    div#container{
+        margin-top:270px;
+        width:80%;
+    }
+  }
+
+  @media screen and (min-width: 2000px) {
+
+    body{
+        margin: 0px;
+        top:0px;
+        left:0px;
+        background-image: url("../img/bicicloBackground.jpg");
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin:auto;
+        display:block;
+        height: 100%;
+        background-color: #242424;
+        color: white;
+    }
+
+    header{
+        height: 10%;
+    }
+
+    header li{
+        font-size: 120%;
+    }
+
+    header li#title{
+        font-size: 300%;
+    }
+
+    #container label{
+        font-size: 150%;
+    }
+
+    div #subtitle{
+        font-size: 300%
+    }
+
+    input[type="submit"]{
+        font-size: 100%;
+    }
+  }
+  
+.container{
+    display: inline-block;
+    flex-wrap: wrap;
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.title{
+    width: 100%;
+}
+
+.head{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.head div{
+    width: 50%;
+}
+
+.nc{
+    flex: 100%;
+    display: inline-block;
+    border: 1px solid black;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: rgb(39, 39, 39);
+    color: rgb(204, 204, 204);
+    box-shadow: 2px 2px 5px black;
+    margin: 0px 15px 15px 15px;
+    overflow: hidden;
+}
+
+table.actions{
+    width: 100%;
+    margin: 0;
+    border-top: 2px solid black;
+    border-collapse: collapse;
+}
+
+table.actions td{
+    border-top: 1px solid black;
+}
+
+table.actions tr:nth-of-type(2n){
+    background-color: rgb(82, 80, 80);
+}
+
+.containernc{
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.nc *{
+    z-index: 0;
+}
+
+.title{
+    margin: 0px;
+    padding: 20px 20px;
+    font-size: 200%;
+    font-family: sans-serif;
+}
+
+.container#segnala{
+    padding-top: 50px;
+    height: auto;
+    text-align: center;
+}
+
+.container input{
+    width: 30%;
+}
+
