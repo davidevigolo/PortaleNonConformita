@@ -11,7 +11,7 @@ if(!$_SESSION['valid']){
 }
 
 if($_SESSION[role] != "Dirigente" && $_SESSION[role] != "Admin"){
-    //header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
+    header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
 }
 
 $servername = "localhost";
@@ -21,9 +21,9 @@ $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome 
 
 $connessione = new mysqli($servername,$username,$password,$dbname);
 
-$dataqa = "SELECT count(*) as c FROM SEGNALAZIONE WHERE DATACHIUSURA IS NULL AND STATO <> 'in approvazione'";
+$dataqa = "SELECT count(*) as c FROM SEGNALAZIONE WHERE DATACHIUSURA IS NULL AND STATO <> 'IN APPROVAZIONE'";
 $dataqc = "SELECT count(*) as c FROM SEGNALAZIONE WHERE DATACHIUSURA IS NOT NULL";
-$dataqp = "SELECT count(*) as c FROM SEGNALAZIONE WHERE STATO='in approvazione'";
+$dataqp = "SELECT count(*) as c FROM SEGNALAZIONE WHERE STATO='IN APPROVAZIONE'";
 $dataa = mysqli_fetch_assoc($connessione->query($dataqa));
 $datac = mysqli_fetch_assoc($connessione->query($dataqc));
 $datap = mysqli_fetch_assoc($connessione->query($dataqp));
@@ -73,7 +73,7 @@ $nomireparto = $connessione->query($nomirepartoq);
 while($row = mysqli_fetch_assoc($nomireparto)){
     $nomirep[] = $row[NOME];
 }*/
-$ncrepartiq = "SELECT R.NOME,count(S.DATACHIUSURA) as C,count(S.NCREPARTO) as CTOT FROM REPARTO R LEFT JOIN SEGNALAZIONE S ON S.NCREPARTO=R.NOME GROUP BY R.NOME"; //count(DATACHIUSURA) conta i record con datachiusura diversi da null e quindi le NC chiuse, mentre l'altro conta il numero di nc totali, uso l'attributo NCREPARTO perchè se un reparto nella left join non ha segnalazioni MySQL conta anche la riga del group by, conto invece così solo le righe che sono effettivamente segnalazioni e quindi col campo valorizzato
+$ncrepartiq = "SELECT R.NOME,count(S.DATACHIUSURA) as C,count(S.NCREPARTO) as CTOT FROM REPARTO R LEFT JOIN (SELECT * FROM SEGNALAZIONE S1 WHERE S1.STATO <> 'IN APPROVAZIONE') AS S ON S.NCREPARTO=R.NOME GROUP BY R.NOME;"; //count(DATACHIUSURA) conta i record con datachiusura diversi da null e quindi le NC chiuse, mentre l'altro conta il numero di nc totali, uso l'attributo NCREPARTO perchè se un reparto nella left join non ha segnalazioni MySQL conta anche la riga del group by, conto invece così solo le righe che sono effettivamente segnalazioni e quindi col campo valorizzato
 $ncrepartir = $connessione->query($ncrepartiq);
 while($row = mysqli_fetch_assoc($ncrepartir)){
     $ncreparti[(string) $row[NOME]] = array(
@@ -93,7 +93,9 @@ while($row = mysqli_fetch_assoc($ncrepartir)){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../style/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://raw.githubusercontent.com/chartjs/Chart.js/master/src/plugins/plugin.filler/index.js"></script>
+    <script src="../Utenti/coinvolti.js"></script>
     <title>Dashboard</title> 
 <script>
 /*window.onload = function () {
@@ -158,43 +160,39 @@ chartLine.render();
 </head>
 <body>
 <?php  
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-					<li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-		<li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-		<li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-     	echo "</header>";
+    require_once('../header.php');
+    $header = new Header();
+    $header->render($_SESSION[role],$_SESSION[username]);
 ?>
 <div id="title">Dashboard dirigenza</div>
-<div id="flexcontainer" style="display: flex; width: 90%; margin:auto;">
+<ul id="formnav" style="width: 40%; margin: auto; margin-bottom: 30px;">
+            <li id="n0">Grafici</li>
+            <li id="n1">Lista Non Conformità</li>
+</ul>
+<div style="display: flex; flex-wrap: wrap; width: 90%; margin:auto;" class="tab" id="0">
 <div id="container" style="flex: 30%; margin: 10px 10px">
-    <div id="chartContainer" style="height: 370px; width: 100%;"><canvas id="piechart"></canvas></div>
+    <div id="subtitle">Visuale andamento Aperte/Chiuse</div>
+    <div id="chartContainer" style="height: 370px; width: 100%;"><canvas id="piechart" style="margin: auto; height: 100%; width: 100%"></canvas></div>
+</div>
+<div id="container" style="flex: 30%; margin: 10px 10px">
+    <div id="subtitle">Visuale radiale per reparto Aperte/Chiuse</div>
+    <div id="chartLineContainer" style="height: 370px; width: 100%;"><canvas id="radarchart" style="margin: auto; height: 100%; width: 100%"></canvas></div>
 </div>
 <body>
-<div id="container" style="flex: 30%; margin: 10px 10px">
-    <div id="chartLineContainer" style="height: 370px; width: 100%;"><canvas id="areachart"></canvas></div>
+<div id="container" style="flex: 100%; margin: 10px 10px">
+    <div id="subtitle">Visuale andamento cronologico Aperte/Chiuse</div>
+    <div id="chartLineContainer" style="height: 370px; width: 100%;"><canvas id="areachart" style="margin: auto; height: 100%; width: 100%"></canvas></div>
 </div>
 <body>
-<div id="container" style="flex: 30%; margin: 10px 10px">
-    <div id="chartContainer" style="height: 370px; width: 100%;"><canvas id="stackchart"></canvas></div>
+<div id="container" style="flex: 100%; margin: 10px 10px">
+    <div id="subtitle">Visuale per reparto Aperte/Chiuse</div>
+    <div id="chartContainer" style="height: 370px; width: 100%;"><canvas id="stackchart" style="margin: auto; height: 100%; width: 100%"></canvas></div>
 </div>
 <script type="text/javascript">
        const ptx = document.getElementById('piechart');
        const atx = document.getElementById('areachart');
        const stx = document.getElementById('stackchart');
+       const rtx = document.getElementById('radarchart');
 
     const dataPie = {
         labels: ['Aperte','Chiuse','In Approvazione'],
@@ -301,11 +299,57 @@ chartLine.render();
     //         }
     //     }
     });
+
+    new Chart(rtx, {
+        type: 'radar',
+        data: dataStack,
+        options:{
+        scales: {
+            r: {
+                grid:{
+                    color: 'rgba(90,90,90,0.3)'
+                },
+                angleLines:{
+                    color: 'rgba(90,90,90,0.3)'
+                },
+                ticks: {
+                        backdropColor: 'transparent'
+                }
+            }
+        }
+    }
+    });
         
     </script>
     </div>
+    <?php
+    
+    echo "<div style=\"display: inline-block; width: 90%;  margin: auto; border: 1px solid black;\" class=\"tab\" id=\"1\">";
+            echo "<table style=\"width: 100%;\" id=\"tabella\" class=\"actions\">";
+            echo "<tr><th>ID</th><th>Tipo</th><th>Stato</th><th>Autore</th><th>Data creazione</th><th>Data chiusura</th><th>Modifica</th></tr>";
+            $recentiq = 
+            "SELECT S.ID AS ID,N.NOME AS TIPO,S.DATACREAZIONE AS DCR,S.DATACHIUSURA AS DCS,A.USERNAME AS USER,S.STATO AS STATO
+            FROM SEGNALAZIONE S JOIN NONCONFORMITA N ON S.TIPO=N.ID JOIN ACCOUNT A ON A.IDSEGNALANTE=S.AUTORE
+            WHERE S.AUTORE IS NOT NULL AND S.STATO <> 'CHIUSA'";
+            $recenti = $connessione->query($recentiq);
+            while($row = mysqli_fetch_assoc($recenti)){
+                echo "<tr><td>$row[ID]</td><td>$row[TIPO]</td><td>$row[STATO]</td><td>$row[USER]</td><td>$row[DCR]</td><td>$row[DCS]</td>";
+                echo "<td>
+                <form method=\"POST\" action=\"../Comuni/risolviNC.php\">
+                <input type=\"hidden\" name=\"idnc\" value=\"$row[ID]\">
+                <input type=\"submit\" value=\"modifica\">
+                </form>
+                </td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+
+        echo "</div>";
+    
+    ?>
     <form action="../Utenti/compilanc.php" method="GET" style="width: 100%;">
-            <input type="submit" value="Segnala una non conformità" class="fullpage">
+        <input type="submit" value="Segnala una non conformità" class="fullpage">
     </form>
+
 </body>
 </html>

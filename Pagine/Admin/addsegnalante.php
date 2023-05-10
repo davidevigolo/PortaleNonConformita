@@ -47,28 +47,29 @@
     
     if($connessione->query($insertq)){
         setcookie("validinsert","true", time() + 3000);
+        $idsegn = mysqli_insert_id($connessione);
+
+        switch($tipo){
+            case "I":
+                Impiegato($connessione,$idsegn);
+                break;
+            case "C":
+                Cliente($connessione,$idsegn);
+                break;
+            case "F":
+                Fornitore($connessione,$idsegn);
+                break;
+        }
     }else{
         setcookie("validinsert","false", time() + 3000);
     }
-    $idsegn = mysqli_insert_id($connessione);
 
-    switch($tipo){
-        case "I":
-            Impiegato($connessione,$idsegn);
-            break;
-        case "C":
-            Cliente($connessione,$idsegn);
-            break;
-        case "F":
-            Fornitore($connessione,$idsegn);
-            break;
-    }
 
     header('location: ./compilasegnalante.php');
     
 
     function Impiegato($connessione,$idsegn){
-        if(!isset($_POST[ddn]) || !isset($_POST[cognome]) || !isset($_POST[nome]) || !isset($_POST[cf]) || !isset($_POST[dassunzione]) || !isset($_POST[dlicenziamento])){
+        if(!isset($_POST[ddn]) || !isset($_POST[cognome]) || !isset($_POST[nome]) || !isset($_POST[cf]) || !isset($_POST[dassunzione]) || !isset($_POST[dlicenziamento]) || !isset($_POST[reparto])){
             setcookie("validinsert","false", time() + 3000);
             return;
         }
@@ -79,9 +80,15 @@
         $dassunzione = $_POST[dassunzione];
         $dlicenziamento = $_POST[dlicenziamento];
         $reparto = $_POST[reparto];
+        $tipo = $_POST[tipo];
+        $cf = $_POST[cf];
 
-        $insertq = "INSERT INTO IMPIEGATO(IDSEGNALANTE,TIPO,COGNOME,NOME,DATAN,DATASSUNZIONE,DATALICENZIAMENTO,REPARTO) VALUES($idsegn,'$tipo','$cognome','$nome','$ddn','$dassunzione','$dlicenziamento','$reparto')";
-
+        if($dlicenziamento != ""){
+            $insertq = "INSERT INTO IMPIEGATO(IDSEGNALANTE,TIPO,COGNOME,NOME,CODF,DATAN,DATASSUNZIONE,DATALICENZIAMENTO,REPARTO) VALUES($idsegn,'$tipo','$cognome','$nome','$cf','$ddn','$dassunzione','$dlicenziamento','$reparto')";
+        }else{
+            $insertq = "INSERT INTO IMPIEGATO(IDSEGNALANTE,TIPO,COGNOME,NOME,CODF,DATAN,DATASSUNZIONE,REPARTO) VALUES($idsegn,'$tipo','$cognome','$nome','$cf','$ddn','$dassunzione','$reparto')";
+        }
+        echo $insertq;
         if($connessione->query($insertq)){
             setcookie("validinsert","true", time() + 3000);
         }else{

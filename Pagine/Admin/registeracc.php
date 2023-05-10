@@ -27,27 +27,20 @@
             header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
         }
 
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
+        if($_COOKIE['validinsert'] == "true"){
+            echo "<header style=\"background-color: rgb(90, 242, 102);\">Aggiornamento riuscito!.</header>";
+            setcookie('validinsert',"",time() - 3600);
+        }elseif ($_COOKIE['validinsert'] == "false"){
+            echo "<header style=\"background-color: rgb(199, 50, 50);\">Aggiornamento fallito, controllare i dati immessi.</header>";
+            setcookie('validinsert',"",time() - 3600);
         }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-         echo "</header>";
+
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
     
     ?>
+    <div id="title">Registra account</div>
     <div id="container">
         <form action ="addacc.php" method="POST">
         <div id="subtitle">Registra un account</div>
@@ -91,7 +84,7 @@
             Qui va messo un qualcosa che fa vedere gli id di tutti i segnalanti con magari nome e altre cazzate
             
             *//*Questo aggiunge alla select i FORNITORI*/
-            $userpdo_q = "SELECT * FROM SEGNALANTE S JOIN FORNITORE F ON IDSEGNALANTE=ID WHERE S.TIPO='F'";
+            $userpdo_q = "SELECT ID,DENOMINAZIONE FROM SEGNALANTE S JOIN FORNITORE F ON IDSEGNALANTE=ID WHERE S.TIPO='F' AND ID NOT IN (SELECT ID FROM SEGNALANTE S1 JOIN ACCOUNT A1 ON S1.ID=A1.IDSEGNALANTE)";
             $userpdo = $connessione ->query($userpdo_q);
         
             echo '<label>Selezionare segnalante</label>';
@@ -103,7 +96,7 @@
             }
             echo "<option value='' disabled> Clienti:</option>";
             //Questo aggiunge alla select i CLIENTI
-            $userpdo_q = "SELECT * FROM SEGNALANTE S JOIN CLIENTE C ON IDSEGNALANTE=ID WHERE S.TIPO='C'";
+            $userpdo_q = "SELECT ID,NOME,COGNOME FROM SEGNALANTE S JOIN CLIENTE C ON IDSEGNALANTE=ID WHERE S.TIPO='C' AND ID NOT IN (SELECT ID FROM SEGNALANTE S1 JOIN ACCOUNT A1 ON S1.ID=A1.IDSEGNALANTE)";
             $userpdo = $connessione ->query($userpdo_q);
             
             while($row= mysqli_fetch_assoc($userpdo)){
@@ -111,7 +104,7 @@
             }
             echo "<option value='' disabled> Impiegati:</option>";
                //Questo aggiunge alla select gli IMPIEGATI
-            $userpdo_q = "SELECT * FROM SEGNALANTE S JOIN IMPIEGATO I ON IDSEGNALANTE=ID WHERE S.TIPO='I'";
+            $userpdo_q = "SELECT ID,NOME,COGNOME FROM SEGNALANTE S JOIN IMPIEGATO I ON IDSEGNALANTE=ID WHERE S.TIPO='I' AND ID NOT IN (SELECT ID FROM SEGNALANTE S1 JOIN ACCOUNT A1 ON S1.ID=A1.IDSEGNALANTE)";
             $userpdo = $connessione ->query($userpdo_q);
             
             while($row= mysqli_fetch_assoc($userpdo)){

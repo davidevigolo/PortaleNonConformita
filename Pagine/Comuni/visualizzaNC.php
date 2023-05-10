@@ -52,7 +52,7 @@
             echo "<header style=\"background-color: rgb(199 50 50);\">Sessione invalida, rieffettuare l'accesso.</header>";
             exit;
         }
-                $servername = "localhost";
+    $servername = "localhost";
     $username = "";
     $password = "";
     $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome usato
@@ -63,59 +63,138 @@
             die("Connessione fallita: " . $conn->connect_error);
         }
     
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-         echo "</header>";
-
-    $q = "SELECT * FROM ACCOUNT A JOIN RUOLO R ON A.ruolo=R.nome WHERE username='".$_SESSION["username"]."'";
-    $grado = mysqli_query($connessione,$q);
-    $grado = mysqli_fetch_assoc($grado);
-    $grado = $grado['GRADOGESTIONE'];
-
-    $q = "SELECT * FROM SEGNALAZIONE S JOIN NONCONFORMITA N ON S.tipo=N.id WHERE gradoMinimo<='".$grado."' ORDER BY identificatore ASC";
-    $risultato = mysqli_query($connessione, $q);
-    
-    /*Gerva */
-    $dettagliSEGNALAZIONE="SELECT S.ID AS COD, DATACREAZIONE,DATACHIUSURA,AUTORE,STATO FROM SEGNALAZIONE AS S JOIN ACCOUNT AS A ON S.AUTORE=A.IDSEGNALANTE JOIN RUOLO AS R ON A.RUOLO=R.NOME WHERE $grado<=R.GRADOGESTIONE";
-    $dettagliSEGNALAZIONE = mysqli_query($connessione,$dettagliSEGNALAZIONE);
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
 
     echo '<div id="title">Lista N.C.</div>';
    // da rimuovere il fatto che si veda tutto in corsivo
-
+//inserire qui il fatto che cicli le option in base ai permessi della persona
+        $a = "SELECT GRADOGESTIONE FROM RUOLO WHERE NOME='$_SESSION[role]'";
+        $risultato = mysqli_query($connessione, $a);
+        $risultato = mysqli_fetch_assoc($risultato);
+        
    echo '<div id="containernc" > 
    
+  
+  
    <div class="nc">
    
     <form id="filtri" action="./Esegui/fai.php" method="post">
-        <input type="radio" name="isAperta" value="dataFineNotNull" ><label>Solo aperte</label>
-        <input type="radio" name="isAperta" value="dataFineNull"><label>Solo chiuse</label><br>
-        <input type="checkbox" name="filtri[]" value="soloMie"><label>Solo mie</label><br>
+        <input type="radio" name="isAperta" value="APERTA" ><label>Solo aperte</label>
+        <input type="radio" name="isAperta" value="CHIUSA"><label>Solo chiuse</label>
+        <input type="radio" name="isAperta" value="IN APPROVAZIONE"><label>Solo in approvazione</label>
+        <input type="radio" name="isAperta" value="tutte" checked><label>Tutte</label><br>
+        <input type="radio" name="filtri" value="mie"><label>Solo mie</label>
+        <input type="radio" name="filtri" value="coinvolto"><label>Solo quelle in cui sono coinvolto</label>
+        <input type="radio" name="filtri" value="diAltri"><label>Solo quelle altrui</label>
+        <input type="radio" name="filtri" value="tutte" checked><label>Tutte</label><br>
+
+        <label>Grado massimo</label>
+        <select name="grado" style="width:50px">
+
+        ';
+        $grado = $risultato[GRADOGESTIONE];
+        for($i=1;$i<$grado;$i++){
+            echo '<option>'.$i.'</option>';
+        }
+        echo '<option selected>'.$grado.'</option>';
+        
+        echo'
+        </select><br>
         <input type="submit" value="Applica">
     </form>
     </div><br><br><br>';
     echo '<div class="nc"><table class="actions" id="tabella">';
     echo '<tr><td><b>ID </b></td><td><b>Autore </b></td><td><b>Stato </b></td><td><b>Data Apertura </b></td><td><b>Data Chiusura </b></td></tr>';
-    while($row = mysqli_fetch_assoc($dettagliSEGNALAZIONE)){
+    
+
+    //se l'utente è già andato almeno una volta in fai.php (ovvero ha premuto il bottone sopra) allora non mostrerà questo if, altrimenti mostrerà le query al suo interno
+    if($_SESSION['usata']=='no'){
+        /*
+        $q = "SELECT * FROM ACCOUNT A JOIN RUOLO R ON A.ruolo=R.nome WHERE username='".$_SESSION["username"]."'";
+        $grado = mysqli_query($connessione,$q);
+        $grado = mysqli_fetch_assoc($grado);
+        $grado = $grado['GRADOGESTIONE'];
+        
+        $q = "SELECT * FROM SEGNALAZIONE S JOIN NONCONFORMITA N ON S.tipo=N.id WHERE gradoMinimo<='".$grado."' ORDER BY identificatore ASC";
+
+        $dettagliSEGNALAZIONE="SELECT S.ID AS COD, DATACREAZIONE,DATACHIUSURA,AUTORE,STATO FROM SEGNALAZIONE AS S JOIN ACCOUNT AS A ON S.AUTORE=A.IDSEGNALANTE JOIN RUOLO AS R ON A.RUOLO=R.NOME WHERE $grado<=R.GRADOGESTIONE";
+*/
+
+        $q="SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE 1=1 AND $grado >= NC.GRADOMINIMO";
+
+        /*Gerva */
+        
+        $dettagliSEGNALAZIONE = mysqli_query($connessione,$q);
+
+        while($row = mysqli_fetch_assoc($dettagliSEGNALAZIONE)){
         
         //echo '<tr class="tblRows" data="'.$row[identificatore].'" style="cursor:pointer"><td>'.$row[identificatore].'</td><td>'.$row[Autore].'</td><td>'.$row[stato].'</td><td>'.$row[dataCreazione].'</td><td>'.$row[dataChiusura].'</td><td></td></tr>';
-        echo "<tr style=cursor:pointer><td>$row[COD]</td><td>$row[AUTORE]</td><td>$row[STATO]</td><td>$row[DATACREAZIONE]</td><td>$row[DATACHIUSURA]</td><td><form method=\"GET\" action=\"../Utenti/dettagliNC.php\"><input type=submit value=\"Dettagli\"><input type=\"hidden\" name=\"COD\" value=$row[COD]></form></td></tr>";
+        echo "<tr style=cursor:pointer><td>$row[ID]</td><td>$row[AUTORE]</td><td>$row[STATO]</td><td>$row[DATACREAZIONE]</td><td>$row[DATACHIUSURA]</td><td><form method=\"POST\" action=\"../Utenti/dettagliNC.php\"><input type=submit value=\"Dettagli\"><input type=\"hidden\" name=\"ID\" value=$row[ID]></form></td></tr>";
+        }
+    }else{
+    
+
+
+        //da modificare questa parte prima di finire
+
+
+        $c = $_SESSION['c']; //il grado
+        $a = $_SESSION['a'];
+        $b = $_SESSION['b']; 
+
+
+        if($b=='tutte'){
+            $query = "SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE 1=1";
+        }elseif($b=='mie'){
+            $query = "SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE SE.AUTORE='{$_SESSION['idsegn']}'";
+        }elseif($b=='coinvolto'){
+            $query = "SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN GESTIONENC GE ON SE.AUTORE=GE.IDSEGNALANTE AND SE.ID=GE.IDSEGNALAZIONE JOIN ACCOUNT AC ON AC.IDSEGNALANTE=SE.AUTORE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE 1=1";
+        }elseif($b=='diAltri'){
+            $query = "SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE NOT SE.AUTORE='{$_SESSION['idsegn']}'";
+        }else{
+            //ciao (da scrivere errore come massimo ma non mettere niente qui)
+        }
+
+
+        //Qui il programma applica i filtri richiesti
+        if($a=='tutte'){
+            //$query="SELECT DISTINCT * FROM SEGNALAZIONE S JOIN GESTIONENC G ON S.ID=G.IDSEGNALAZIONE JOIN ACCOUNT A ON A.IDSEGNALANTE=S.AUTORE JOIN RUOLO R ON R.NOME=A.RUOLO WHERE '1'='1' AND A.USERNAME='{$_SESSION['username']}'";
+            $query = $query . "";
+        }else{ 
+            //$query = "SELECT DISTINCT * FROM SEGNALAZIONE S JOIN GESTIONENC G ON S.ID=G.IDSEGNALAZIONE JOIN ACCOUNT A ON A.IDSEGNALANTE=S.AUTORE JOIN RUOLO R ON R.NOME=A.RUOLO WHERE STATO='{$a}' AND A.USERNAME='{$_SESSION['username']}'";
+            $query = $query . " AND SE.STATO='{$a}'";
+        }
+
+
+        //Controlla la seconda parte dei filtri
+       
+
+        //controllo grado massimo
+
+        //(SELECT R.GRADOGESTIONE FROM ACCOUNT A JOIN RUOLO R ON A.RUOLO=R.NOME WHERE A.IDSEGNALANTE={$_SESSION['idsegn']})
+
+        $query = $query." AND {$c} <= NC.GRADOMINIMO";
+
+        //controllo grado massimo
+
+        if($a=='tutte'&&$b=='tutte'){
+            $query = "SELECT DISTINCT SE.ID, SE.DATACREAZIONE, IFNULL(SE.DATACHIUSURA,'NON SPECIFICATA') AS DATACHIUSURA, SE.AUTORE, SE.STATO FROM SEGNALAZIONE SE JOIN NONCONFORMITA NC ON SE.TIPO=NC.ID WHERE 1=1";
+            $query = $query." AND {$c} >= NC.GRADOMINIMO";
+        }
+
+        //Qui il programma invece mostra i risultati della megaquery pazzasgrava
+        
+        $risultato = $connessione ->query($query);
+
+        //da sistemare la visualizzazione della tabella (è stata copiata da quella di prima ma non modificata)
+        while($row = mysqli_fetch_assoc($risultato)){
+            //echo '<tr class="tblRows" data="'.$row[identificatore].'" style="cursor:pointer"><td>'.$row[identificatore].'</td><td>'.$row[Autore].'</td><td>'.$row[stato].'</td><td>'.$row[dataCreazione].'</td><td>'.$row[dataChiusura].'</td><td></td></tr>';
+            echo "<tr style=cursor:pointer><td>$row[ID]</td><td>$row[AUTORE]</td><td>$row[STATO]</td><td>$row[DATACREAZIONE]</td><td>$row[DATACHIUSURA]</td><td><form method=\"POST\" action=\"../Utenti/dettagliNC.php\"><input type=submit value=\"Dettagli\"><input type=\"hidden\" name=\"ID\" value=$row[ID]></form></td></tr>";
+        }
     }
+    $_SESSION['usata']='no';
     echo '</table></div></div>';
 
     //Qui vanno messe le cose per far vedere all'utente informazioni (chi se ne sta occupando ecc...)

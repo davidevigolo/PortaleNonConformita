@@ -42,7 +42,16 @@
     $username = "";
     $password = "";
     $dbname = "my_bicicletta22235id"; //va cambiato il nome del db secondo il nome usato
-    
+
+    $_SESSION['a'] = $_POST['isAperta'];
+    $_SESSION['b'] = $_POST['filtri'];
+    $_SESSION['c'] = $_POST['grado'];
+    $_SESSION['usata'] = 'vero';
+
+    echo $primo;
+    echo $secondo;
+    echo $terzo;
+
     $connessione = mysqli_connect($servername, $username, $password, $dbname);
 
     if ($connessione->connect_error) {
@@ -104,6 +113,8 @@
     echo '</div id="container">';
    
     mysqli_close($connessione);
+
+    header("Location: http://bicicletta22235id.altervista.org/Pagine/Comuni/visualizzaNC.php");
     ?>
 
 </body>

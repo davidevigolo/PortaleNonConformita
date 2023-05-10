@@ -6,36 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../style/dashboard.css">
     <title>Modifica Account</title>
-    <style>
-        div#container {
-            width:50%;
-        } 
-        #container{
-            border-radius: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items:baseline;
-        }
-
-        @media screen and (max-width: 990px){
-            #container{
-                
-            }
-        }
-
-        #info{
-            text-align: left;
-            padding: 7px;
-            flex:30%;
-        }
-
-        #input{
-            border-radius: 3px;
-            padding: 7px;
-            flex:70%;
-        }
-    </style>
-</head>
+</head> 
 <boby>
     <?php 
     header("Cache-Control: no-cache, must-revalidate");
@@ -53,51 +24,57 @@
         header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
     }
 
-    $indirizzo = "localhost";
-    $user = "";
+    $servername = "localhost";
+    $username = "";
     $password = "";
-    $db = "my_bicicletta22235id"; 
+    $dbname = "my_bicicletta22235id";
 
+    $connessione = new mysqli($servername,$username,$password,$dbname);
 
+    //Update password
 
-    $connessione = new mysqli($indirizzo, $user, $password, $db);
-    // controlla connessione
-
-    if ($connessione->connect_error) {
-        die("Connessione fallita: " . $conn->connect_error);
+    if(isset($_POST[newPass]) && $_POST[pass]==true && isset($_POST[user])){
+        $password = password_hash($_POST[newPass], PASSWORD_BCRYPT);
+        $updateP = "UPDATE ACCOUNT 
+                    SET ACCOUNT.PASSWORD='$password' 
+                    WHERE USERNAME = '$_POST[user]';";
+        if($connessione->query($updateP)){
+            setcookie("validinsert","true",time() + 3000);
+        }else{
+            setcookie("validinsert","false",time() + 3000);
+        }
+        header('location: ./modificaAccount.php');
     }
-    $nomeutente= $_SESSION['username'];
-    echo '<header>';
-    if($_SESSION['role']=='Admin'){ 
-        
-            echo "<ul>
-                <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>";
-    }
 
-    echo "
-    <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-    <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-    <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-    <li style=\"float:right;\">{$_SESSION['username']}</li>  
-    <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-    </ul>";
+    //Update dati account
+
+    if(isset($_POST[ids]) && isset($_POST[username])){
+        $oldid=$_POST[idselect];
+        $olduser=$_POST[userselect];
+        $newid=$_POST[ids];
+        $newuser=$_POST[username];
+        $email=$_POST[email];
+        $ruolo=$_POST[ruolo];
+        $tel=$_POST[telefono];
+
+        $updateQ="UPDATE 
+                    SEGNALANTE, ACCOUNT
+                SET
+                    SEGNALANTE.EMAIL='$email', SEGNALANTE.TELEFONO='$tel', SEGNALANTE.ID=$newid, ACCOUNT.USERNAME='$newuser', ACCOUNT.RUOLO='$ruolo'
+                WHERE
+                    SEGNALANTE.ID=$oldid AND ACCOUNT.USERNAME='$olduser';";
+        //echo $updateQ;
+        if($connessione->query($updateQ)){
+            setcookie("validinsert","true",time() + 3000);
+        }else{
+            setcookie("validinsert","false",time() + 3000);
+        }
+
+        header('location: ./modificaAccount.php');
+    }
     
-     echo "</header>";
-
-    /*Query:*/
-
-    $dettagliACCOUNT = "SELECT * FROM ACCOUNT AS A JOIN SEGNALANTE AS S ON A.IDSEGNALANTE=S.ID WHERE A.IDSEGNALANTE=$_POST[idselect]";
-    $dettagliACCOUNT = mysqli_query($connessione, $dettagliACCOUNT);
-    $dettagliACCOUNT = mysqli_fetch_assoc($dettagliACCOUNT);
-
-    echo '<div id="title">Modifica Account</div>';
-        echo "<div id='container'>";
-                
-                
-
-        echo"</div>";
+    
     ?>
 </boby>
-</html>
+</html>
+

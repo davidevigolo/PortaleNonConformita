@@ -11,8 +11,11 @@
     </head>
     <body>
         <?php
+            session_start();        
+            require_once('../header.php');
+            $header = new Header();
+            $header->render($_SESSION[role],$_SESSION[username]);
             header("Cache-Control: no-cache, must-revalidate");
-            session_start();
             
             if(!isset($_SESSION['valid'])){
                 echo "<header style=\"background-color: rgb(199 50 50);\">Sessione scaduta, rieffettuare l'accesso.</header>";

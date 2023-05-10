@@ -36,7 +36,7 @@
 
     if(!isset($_POST['tipo']) || !isset($_POST['sku']) || !isset($_POST['prezzo']) || !isset($_POST['fornitore'])){
         setcookie("validinsert",false, time() + 3000);
-        header('location: ./compilatipoprod.php');
+        //header('location: ./compilatipoprod.php');
         exit;
     }
     $sku = $_POST[sku];
@@ -64,7 +64,7 @@
         setcookie("validinsert","false", time() + 3000);
     }
 
-    header('location: ./compilatipoprod.php');
+    //header('location: ./compilatipoprod.php');
     
     ?>
 </body>

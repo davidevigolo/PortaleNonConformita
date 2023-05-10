@@ -32,25 +32,9 @@
         if($_SESSION[role] != "Admin"){
             header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
         }
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-					<li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-		<li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-		<li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-     	echo "</header>";
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
 ?>
 
 <div id="title">Dashboard Admin</div>
@@ -59,10 +43,12 @@
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Inserisci nuovo tipo di prodotto</h2><form action="./compilatipoprod.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Inserisci nuovo segnalante</h2><form action="./compilasegnalante.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Inserisci nuovo account</h2><form action="./registeracc.php"><input type="submit" value="Vai"></form></div>
+    <div id="container" style="flex-basis: 49% margin: 10px"><h2>Inserisci reparto</h2><form action="./compilareparto.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Gestisci account</h2><form action="./modificaAccount.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Gestisci tipi di prodotti</h2><form action="./modificatipoprod.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Gestisci prodotti</h2><form action="./modificaprodotti.php"><input type="submit" value="Vai"></form></div>
     <div id="container" style="flex-basis: 49% margin: 10px"><h2>Gestisci segnalante</h2><form action="./modificasegnalante.php"><input type="submit" value="Vai"></form></div>
+    <div id="container" style="flex-basis: 49% margin: 10px"><h2>Gestisci reparto</h2><form action="./modificasegnalante.php"><input type="submit" value="Vai"></form></div>
 </div>
 </body>
 

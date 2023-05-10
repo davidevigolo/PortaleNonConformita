@@ -1,3 +1,11 @@
+<?php
+session_start();
+if($_SESSION[tipo] != I && $_SESSION[role] != "Caporeparto"){
+    header('location: ../Utenti/dashboard.php');
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +13,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../style/dashboard.css">
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script src="../Utenti/coinvolti.js"></script>
     <title>Risolvi NC</title>
     <style> 
         #filtri{
@@ -12,7 +22,6 @@
             width:auto;
             display: inline-block;
         }
-
         form#filtri input{
             width: auto;
             height: auto;
@@ -22,7 +31,14 @@
             border: 2px solid green;
             border-radius: 5px;
             margin: 3px;
-            box-shadow: 0px 0px 50px 20px rgb(40,40,40) inset; 
+            box-shadow: 0px 0px 90px 20px rgb(40,40,40) inset; 
+            padding: 10px;
+        }
+        select.selector#first{
+            border: 2px solid rgb(1, 144, 201);
+        }
+        table{
+            border: 1px solid black;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -50,7 +66,6 @@
 <body>
     <?php 
         header("Cache-Control: no-cache, must-revalidate");
-        session_start();
 
         if(!isset($_SESSION['valid'])){
             echo "<header style=\"background-color: rgb(199 50 50);\">Sessione scaduta, rieffettuare l'accesso.</header>";
@@ -69,32 +84,16 @@
             setcookie('validinsert',"",time() - 3600);
         }
 
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-         echo "</header>";
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
 
-    $servername = "localhost";
-    $username = "";
-    $password = "";
-    $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome usato
+        $servername = "localhost";
+        $username = "";
+        $password = "";
+        $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome usato
 
-    $connessione = mysqli_connect($servername, $username, $password, $dbname);
+        $connessione = mysqli_connect($servername, $username, $password, $dbname);
     
     if ($connessione->connect_error) {
         die("Connessione fallita: " . $conn->connect_error);
@@ -102,14 +101,14 @@
     ?>
 
     <div id="container" style="width:80%; display:flex; flex-wrap: wrap;">
-        <label>SelezionaNC</label>
+        <label>Seleziona non conformità</label>
         <form method="POST" action="risolviNC.php" style="flex:100%;">
             <select name="idnc" class="selector" style="width:100%">
                 <?php
                 if($_SESSION['role']=='Dirigente'||$_SESSION['role']=='Caporeparto'||$_SESSION['role']=='Admin'){
-                    $nonconformitaq = "SELECT S.ID,S.TIPO,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND STATO<>'CHIUSA'";
+                    $nonconformitaq = "SELECT DISTINCT S.ID,NC.NOME,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID JOIN GESTIONENC G ON G.IDSEGNALAZIONE=S.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND S.AUTORE IS NOT NULL OR G.IDSEGNALANTE=$_SESSION[idsegn] OR S.NCREPARTO=(SELECT REPARTO FROM IMPIEGATO WHERE IDSEGNALANTE=$_SESSION[idsegn]) ORDER BY S.ID ASC";
                 }else{
-                    $nonconformitaq = "SELECT S.ID,S.TIPO,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND STATO='APERTA'";
+                    $nonconformitaq = "SELECT DISTINCT S.ID,NC.NOME,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID JOIN GESTIONENC G ON G.IDSEGNALAZIONE=S.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND STATO='APERTA' OR G.IDSEGNALANTE=$_SESSION[idsegn] ORDER BY S.ID ASC";
                 }
                 
                 echo $nonconformitaq;
@@ -119,12 +118,104 @@
                     $idsegnalante = $row['AUTORE'];
                     $autoreq = "SELECT USERNAME FROM ACCOUNT WHERE IDSEGNALANTE={$idsegnalante}";
                     $res = mysqli_fetch_assoc($connessione->query($autoreq));
-                    echo "<option value=\"{$row['ID']}\""; if($row[ID] == $_POST[idnc]) echo "selected";  echo ">{$row['ID']} - {$row['TIPO']} - {$res['USERNAME']} - {$row['NCREPARTO']} - {$row['NCFORNITORE']}</option>";
+                    echo "<option value=\"{$row['ID']}\""; if($row[ID] == $_POST[idnc]) echo "selected";  echo ">ID: {$row['ID']} Tipo: {$row['NOME']} Autore: {$res['USERNAME']} Reparto di origine: {$row['NCREPARTO']} Fornitore di origine: {$row['NCFORNITORE']}</option>";
                 }
 
                 ?>
             </select>
             <input type="submit" value="Seleziona">
+        </form>
+        <?php
+        echo "<div style=\"display: inline-block; flex: 100%;\">";
+        if(!isset($_POST[idnc])){
+            echo "<label>Le più recenti:</label><br>";
+            echo "<table style=\"width: 100%;\" id=\"tabella\" class=\"actions\">";
+            echo "<tr><th>ID</th><th>Tipo</th><th>Stato</th><th>Autore</th><th>Data creazione</th><th>Data chiusura</th><th>Modifica</th></tr>";
+            $recentiq = 
+            "SELECT S.ID AS ID,N.NOME AS TIPO,S.DATACREAZIONE AS DCR,S.DATACHIUSURA AS DCS,A.USERNAME AS USER,S.STATO AS STATO
+            FROM SEGNALAZIONE S JOIN NONCONFORMITA N ON S.TIPO=N.ID JOIN ACCOUNT A ON A.IDSEGNALANTE=S.AUTORE
+            WHERE STATO='APERTA'";
+            $recenti = $connessione->query($recentiq);
+            while($row = mysqli_fetch_assoc($recenti)){
+                echo "<tr><td>$row[ID]</td><td>$row[TIPO]</td><td>$row[DCR]</td><td>$row[DCS]</td><td>$row[USER]</td><td>$row[STATO]</td>";
+                echo "<td>
+                <form method=\"POST\" action=\"risolviNC.php\">
+                <input type=\"hidden\" name=\"idnc\" value=\"$row[ID]\">
+                <input type=\"submit\" value=\"modifica\">
+                </form>
+                </td>";
+                echo "</tr>";
+            }
+            echo "</table>";
+
+        }
+        echo "</div>";
+
+        
+        ?>
+        <form method="POST" action="risolviNC.php" style="flex:100%;">
+        <?php
+            if ( ($_SESSION['role']=='Dirigente'||$_SESSION['role']=='Caporeparto'||$_SESSION['role']=='Admin') && isset($_POST[idnc]) && !isset($_POST[chgcoinv])){
+                echo "<input type=\"hidden\" name=\"chgcoinv\" value=\"true\">";
+                echo "<input type=\"submit\" value=\"Modifica coinvolti\">";
+                echo "<input type=\"hidden\" name=\"idnc\" value=\"$_POST[idnc]\">";
+                if(isset($_POST[chginfo])){
+                    echo "<input type=\"hidden\" name=\"chginfo\" value=\"$_POST[idnc]\">";
+                }
+            }
+        ?>
+        </form>
+        <form method="POST" action="updateNC.php" style="flex:100%;">
+        <input type="hidden" name="chgcoinv" value="true">
+        <?php
+            if ( ($_SESSION['role']=='Dirigente'||$_SESSION['role']=='Caporeparto'||$_SESSION['role']=='Admin') && isset($_POST[chgcoinv]) && isset($_POST[idnc])){
+                echo "<select class=\"selector\" tag=\"coinvolti[]\" id=\"first\">";
+                $impq = "SELECT * FROM IMPIEGATO";
+                $fornq = "SELECT * FROM FORNITORE";
+                $cliq = "SELECT * FROM CLIENTE";
+                $impr = $connessione->query($impq);
+                $fornr = $connessione->query($fornq);
+                $clir = $connessione->query($cliq);
+                echo "<option value='' disabled selected> Impiegati</option>";
+                while($row = mysqli_fetch_assoc($impr)){
+                    echo "<option value=\"{$row['IDSEGNALANTE']}\">Impiegato: {$row['NOME']} {$row['COGNOME']}</option>";
+                } 
+                echo "<option value='' disabled selected> Fornitori</option>";
+                while($row = mysqli_fetch_assoc($fornr)){
+                    echo "<option value=\"{$row['IDSEGNALANTE']}\">{$row['DENOMINAZIONE']} PIVA: {$row['PIVA']}</option>";
+                } 
+                echo "<option value='' disabled selected> Clienti</option>";
+                while($row = mysqli_fetch_assoc($clir)){
+                    echo "<option value=\"{$row['IDSEGNALANTE']}\">Cliente: {$row['NOME']} {$row['COGNOME']}</option>";
+                }     
+                echo "</select>";
+
+
+                $coinvoltiq = "SELECT I.IDSEGNALANTE FROM GESTIONENC G JOIN IMPIEGATO I ON G.IDSEGNALANTE=I.IDSEGNALANTE WHERE G.IDSEGNALAZIONE=$_POST[idnc]";
+                $coinvolti = $connessione->query($coinvoltiq);
+                while($row = mysqli_fetch_assoc($coinvolti)){
+                    echo "<select class=\"selector\" name=\"coinvolti[]\">";
+                    printCoinvolgibili($connessione,$row[IDSEGNALANTE]);
+                    echo "</select>";
+                }
+                $coinvoltiq = "SELECT F.IDSEGNALANTE FROM GESTIONENC G JOIN FORNITORE F ON G.IDSEGNALANTE=F.IDSEGNALANTE WHERE G.IDSEGNALAZIONE=$_POST[idnc]";
+                $coinvolti = $connessione->query($coinvoltiq);
+                while($row = mysqli_fetch_assoc($coinvolti)){
+                    echo "<select class=\"selector\" name=\"coinvolti[]\">";
+                    printCoinvolgibili($connessione,$row[IDSEGNALANTE]);
+                    echo "</select>";
+                }
+                $coinvoltiq = "SELECT C.IDSEGNALANTE FROM GESTIONENC G JOIN CLIENTE C ON G.IDSEGNALANTE=C.IDSEGNALANTE WHERE G.IDSEGNALAZIONE=$_POST[idnc]";
+                $coinvolti = $connessione->query($coinvoltiq);
+                while($row = mysqli_fetch_assoc($coinvolti)){
+                    echo "<select class=\"selector\" name=\"coinvolti[]\">";
+                    printCoinvolgibili($connessione,$row[IDSEGNALANTE]);
+                    echo "</select>";
+                }
+                echo "<input type=\"hidden\" name=\"id\" value=\"$_POST[idnc]\">";
+                echo "<input type=\"submit\" value=\"Conferma\">";
+            }
+        ?>
         </form>
         <?php
         
@@ -189,10 +280,12 @@
                     echo "<option value=\"{$row['ID']}\""; if($tipo['ID'] == $row['ID']) echo "selected"; echo ">{$row['ID']} - {$row['NOME']}</option>";
                 }
                 echo "</select></br>";
-
+                
+                if($_SESSION[role] == "Caporeparto" || $_SESSION[role] == "Dirigente" || $_SESSION[role] == "Admin"){
                 echo "<label>Stato non conformità: ({$stato})</label><select class='selector' name='stato'>
                 <option value='APERTA'";if($stato=="APERTA"){echo "selected";} echo ">Aperta</option>
                 <option value='IN APPROVAZIONE'";if($stato=="IN APPROVAZIONE"){echo "selected";} echo ">In approvazione</option>";
+                }
                 /*Data creazione*/
                 echo "<label>Data creazione: ({$dataCreazione})</label></br>";
                 echo "<input type=\"date\" name=\"dc\" placeholder=\"Data creazione: {$dataCreazione}\" value=\"{$dataCreazione}\"></br>";
@@ -276,12 +369,15 @@
                     $acq = $connessione->query($acq);
                     $acq = mysqli_fetch_assoc($acq);
                 }
-                echo "<input type=\"hidden\" name= \"idNC\" value=$idNC>";
+
+                $dataq = "SELECT DATACREAZIONE FROM SEGNALAZIONE WHERE ID = $_POST[idnc]";
+                $data = mysqli_fetch_assoc($connessione->query($dataq));
+                echo "<input type=\"hidden\" name= \"idnc\" value=$idNC>";
                 echo "<input type=\"hidden\" name=\"eseguente\" value=$_SESSION[idsegn]>";
                 echo "<label>Data inizio:</label>";
-                echo "<input type=\"date\" name=\"di\""; if(isset($_POST[numac])) echo "value=$acq[DATAINIZIO]"; echo "></br>";
+                echo "<input type=\"date\" name=\"di\" min=\"$data[DATACREAZIONE]\""; if(isset($_POST[numac])) echo "value=$acq[DATAINIZIO]"; echo "></br>";
                 echo "<label>Data fine:</label>";
-                echo "<input type=\"date\" name=\"df\""; if(isset($_POST[numac])) echo "value=$acq[DATAFINE]"; echo"></br>";
+                echo "<input type=\"date\" name=\"df\" min=\"$data[DATACREAZIONE]\""; if(isset($_POST[numac])) echo "value=$acq[DATAFINE]"; echo"></br>";
                 if(isset($_POST[numac])) echo "<input type=\"hidden\" value=\"$_POST[numac]\" name=\"numac\">";
                 echo "<textarea style=\"resize:none; width: 100%; height: 100px; color: black;\" name=\"desc\" placeholder=\"Descrizione\">"; if(isset($_POST[numac])) echo "$acq[DESCRIZIONE]"; echo"</textarea></br>";
                 if(isset($_POST[numac])){
@@ -314,16 +410,39 @@
 
             ?>
         </div>
-        <h2>Aggiungi prodotti relativi</h2></br>
+        <h2>Prodotti relativi</h2></br>
+        <div id="segnprodcontainer" style="display: flex; flex-wrap: wrap;">
+            <?php
+            $acq = "SELECT S.IDPROD AS ID,T.TIPO AS TIPO,P.LOTTO AS LOTTO FROM SEGNALAZIONEPROD S JOIN PRODOTTO P ON S.IDPROD=P.ID JOIN TIPOPRODOTTO T ON P.TIPO=T.SKU WHERE S.IDSEGNALAZIONE=$_POST[idnc]";
+            $acq = $connessione->query($acq);
+
+            while($ac = mysqli_fetch_assoc($acq)){
+                echo "
+                <div class=\"ac\" style=\"border: 1px solid black\">
+                    <label>ID: $ac[ID]</label><br>
+                    <label>Tipo: $ac[TIPO]</label><br>
+                    <label>Lotto: $ac[LOTTO]</label><br>
+                    <form action=\"updateNC.php#segnprodcontainer\" method=\"POST\">
+                    <input type=\"hidden\" value=\"$idNC\" name=\"idnc\">
+                    <input type=\"hidden\" value=\"$ac[ID]\" name=\"idprod\"> 
+                    <input type=\"hidden\" value=\"true\" name=\"delprod\">
+                    <input type=\"submit\" value=\"Elimina\">
+                    </form>
+                </div>";
+            }
+
+            ?>
+        </div>
         <div id="prodcontainer" style="display: flex; flex-wrap: wrap;">
 
                 <div id="container" style="flex-basis: 100%;">
-                    <form action="risolviNC.php" method="POST">
+                    <form action="risolviNC.php#prodcontainer" method="POST">
                         <label>Seleziona un lotto</label>
                         <select class="selector" name="selectlotto">
                         <?php
-                        $lottiq = "SELECT DISTINCT LOTTO FROM PRODOTTO";
+                        $lottiq = "SELECT DISTINCT LOTTO FROM PRODOTTO P WHERE P.ID NOT IN (SELECT IDPROD FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE = $_POST[idnc])";
                         $lotti = $connessione->query($lottiq);
+                        echo "<option disabled selected>Scegli un lotto</option>";
                         while($row = mysqli_fetch_assoc($lotti)){
                             echo "<option value=\"$row[LOTTO]\""; if($row[LOTTO]==$_POST[selectlotto]) echo "selected"; echo">$row[LOTTO]</option>";
                         }
@@ -340,21 +459,22 @@
                     <?php
 
                     if(isset($_POST[selectlotto]) && $_POST[selectlotto] == "all")
-                        $segnalantiq = "SELECT P.ID,P.LOTTO,TP.TIPO as TIPONOME,TP.SKU AS SKU FROM PRODOTTO P JOIN TIPOPRODOTTO TP ON P.TIPO=TP.SKU";
+                        $prodq = "SELECT P.ID,P.LOTTO,TP.TIPO as TIPONOME,TP.SKU AS SKU FROM PRODOTTO P JOIN TIPOPRODOTTO TP ON P.TIPO=TP.SKU WHERE P.ID NOT IN (SELECT IDPROD FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE = $_POST[idnc])";
                     else
-                        $segnalantiq = "SELECT P.ID,P.LOTTO,TP.TIPO as TIPONOME,TP.SKU AS SKU FROM PRODOTTO P JOIN TIPOPRODOTTO TP ON P.TIPO=TP.SKU WHERE LOTTO=$_POST[selectlotto]";
+                        $prodq = "SELECT P.ID,P.LOTTO,TP.TIPO as TIPONOME,TP.SKU AS SKU FROM PRODOTTO P JOIN TIPOPRODOTTO TP ON P.TIPO=TP.SKU WHERE P.ID NOT IN (SELECT IDPROD FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE = $_POST[idnc]) AND LOTTO=$_POST[selectlotto]";
                     
-                    $segnalanti = $connessione->query($segnalantiq);
+                    $segnalanti = $connessione->query($prodq);
                     $tipiq = "SELECT * FROM TIPOPRODOTTO";
                     $tipi = $connessione->query($tipiq);
                     while($row = mysqli_fetch_assoc($segnalanti)){
-                        echo "<div id=\"container\" style=\"flex: 18%; margin: 10px; text-align: left;\">
+                        echo "<div class=\"ac\" style=\"flex: 18%; margin: 10px; text-align: left; border: 1px solid black;\">
                             <label>ID: $row[ID]</label><br>
                             <label>Tipo: $row[TIPONOME]</label><br>
                             <label>Lotto: $row[LOTTO]</label><br>
                             <form action=\"modificaprodotti.php\" method=\"POST\">
                             <input type=\"hidden\" name=\"idselect\" value=\"$row[ID]\">
                             <input type=\"hidden\" name=\"selectlotto\" value=\"$_POST[selectlotto]\">
+                            <input type=\"hidden\" name=\"idnc\" value=\"$idNC\">
                             <input type=\"submit\" value=\"Aggiungi\">
                             </form>
                         </div>";
@@ -380,6 +500,33 @@
     $q = "SELECT * FROM ";
         mysqli_close($connessione);
     ?>-->
+
+
+    <?php
+    function printCoinvolgibili($connessione,$selected){
+        echo $selected;
+        $impq = "SELECT * FROM IMPIEGATO";
+        $fornq = "SELECT * FROM FORNITORE";
+        $cliq = "SELECT * FROM CLIENTE";
+        $impr = $connessione->query($impq);
+        $fornr = $connessione->query($fornq);
+        $clir = $connessione->query($cliq);
+        echo "<option value='' disabled> Impiegati</option>";
+        while($row = mysqli_fetch_assoc($impr)){
+            echo "<option value=\"{$row['IDSEGNALANTE']}\""; if($row[IDSEGNALANTE] == $selected) echo "selected"; echo">Impiegato: {$row['NOME']} {$row['COGNOME']}</option>";
+        } 
+        echo "<option value='' disabled> Fornitori</option>";
+        while($row = mysqli_fetch_assoc($fornr)){
+            echo "<option value=\"{$row['IDSEGNALANTE']}\""; if($row[IDSEGNALANTE] == $selected) echo "selected"; echo ">{$row['DENOMINAZIONE']} PIVA: {$row['PIVA']}</option>";
+        } 
+        echo "<option value='' disabled> Clienti</option>";
+        while($row = mysqli_fetch_assoc($clir)){
+            echo "<option value=\"{$row['IDSEGNALANTE']}\""; if($row[IDSEGNALANTE] == $selected) echo "selected"; echo">Cliente: {$row['NOME']} {$row['COGNOME']}</option>";
+        }
+        echo "<option>Elimina</option>";
+    }
+    
+    ?>
 
 </body>
 </html>

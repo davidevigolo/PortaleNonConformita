@@ -8,6 +8,11 @@
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="../../script/compilasegnalante.js"></script>
     <title>PortaleNC - Registra Segnalante</title>
+    <script>
+        $(document).ready(() => {
+            $('#repselect').hide();
+        })
+    </script>
 </head>
 <body>
     <?php
@@ -33,30 +38,25 @@
             setcookie('validinsert',"",time() - 3600);
         }
 
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
         
-         echo "</header>";
+        $servername = "localhost";
+        $username = "";
+        $password = "";
+        $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome usato
+    
+        // controlla connessione
+        $connessione = mysqli_connect($servername, $username, $password, $dbname);
+            
+        if ($connessione->connect_error) {
+            header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+        }
     ?>
     <div id="title">Registra segnalante</div>
     <div id="container">
-        <!--addsegnalante.php è stato cambiato in compilaimpiegato-->
-        <form action ="compilaImpiegato.php" method="POST">
+        <form action ="addsegnalante.php" method="POST">
             <label>Email</label>
             <input type="email" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" size="30" name="email" value="" placeholder="Email" required>
             <label>Telefono (formato: XXX-XXX-XXXX)</label>
@@ -69,25 +69,19 @@
                 <option value="I">Impiegato</option>
             </select>
             <div id="campi">
-
             </div>
-            <?php 
-
-            $servername = "localhost";
-            $username = "";
-            $password = "";
-            $dbname = "my_bicicletta22235id";  //va cambiato il nome del db secondo il nome usato
-        
-            // controlla connessione
-            $connessione = mysqli_connect($servername, $username, $password, $dbname);
-                
-            if ($connessione->connect_error) {
-                header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-            }
-            ?>
-
-
-
+            <div id="repselect">
+                <label>Reparto</label>
+                <select class="selector" name="reparto">
+                    <?php
+                    $repartiq = "SELECT NOME FROM REPARTO";
+                    $reparti = $connessione->query($repartiq);
+                    while($row = mysqli_fetch_assoc($reparti)){
+                        echo "<option value=\"$row[NOME]\">$row[NOME]</option>";
+                    }
+                    ?>
+                </select>
+            </div>
             <input type="submit" style="text-align: center" value="Registra">
         </form>
     </div>
