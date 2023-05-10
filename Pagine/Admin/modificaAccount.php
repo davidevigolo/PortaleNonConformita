@@ -10,11 +10,6 @@
         div#container {
             width:70%;
         }
-        #container{
-            border-radius: 10px;
-            display: flex;
-            flex-wrap: wrap;
-        } 
 
         @media screen and (max-width: 990px){
             #container{
@@ -52,12 +47,18 @@
         header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
     }
 
+    if($_COOKIE['validinsert'] == "true"){
+        echo "<header style=\"background-color: rgb(90, 242, 102);\">Aggiornamento riuscito!.</header>";
+        setcookie('validinsert',"",time() - 3600);
+    }elseif ($_COOKIE['validinsert'] == "false"){
+        echo "<header style=\"background-color: rgb(199, 50, 50);\">Aggiornamento fallito, controllare i dati immessi.</header>";
+        setcookie('validinsert',"",time() - 3600);
+    }
+    
     $indirizzo = "localhost";
     $user = "";
     $password = "";
     $db = "my_bicicletta22235id"; 
-
-
 
     $connessione = new mysqli($indirizzo, $user, $password, $db);
     // controlla connessione
@@ -66,83 +67,83 @@
         die("Connessione fallita: " . $conn->connect_error);
     }
     $nomeutente= $_SESSION['username'];
-    echo '<header>';
-    if($_SESSION['role']=='Admin'){ 
-        
-            echo "<ul>
-                <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>";
-    }
-
-    echo "
-    <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-    <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-    <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-    <li style=\"float:right;\">{$_SESSION['username']}</li>  
-    <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-    </ul>";
-    
-     echo "</header>";
+    require_once('../header.php');
+    $header = new Header();
+    $header->render($_SESSION[role],$_SESSION[username]);
 
     /*Query:*/
 
-    $dettagliACCOUNT = "SELECT * FROM ACCOUNT AS A JOIN SEGNALANTE AS S ON A.IDSEGNALANTE=S.ID";
-    $dettagliACCOUNT = mysqli_query($connessione, $dettagliACCOUNT);
+    $dettagliACCOUNT = "SELECT * FROM ACCOUNT AS A JOIN SEGNALANTE AS S ON A.IDSEGNALANTE=S.ID ORDER BY S.ID";
+    $dettagliACCOUNT = $connessione->query($dettagliACCOUNT);
+
+    $IDS = "SELECT S.ID 
+                FROM SEGNALANTE S LEFT JOIN ACCOUNT A ON S.ID=A.IDSEGNALANTE
+                WHERE A.IDSEGNALANTE IS NULL;";
+    $IDS = $connessione->query($IDS);
+
+    $RUOLI = "SELECT NOME FROM RUOLO;";
+    $RUOLI = $connessione->query($RUOLI);
 
     echo '<div id="title">Modifica Account</div>';
 
     echo '<div id="acoount" style="width: 80%; margin: auto;">';
 
-        echo "<div id='container'>";
                 while($row = mysqli_fetch_assoc($dettagliACCOUNT)){
-                    if(isset($_POST[idselect])){
-                        echo "<div id=info> 
-                            <form method=POST action=modificaAccount.php>
-                                <label>Id: <input type=text name=ID value=$dettagliACCOUNT[ID]></label> <br>
-                                <label>Username: <input type=text name=USERNAME value=$dettagliACCOUNT[USERNAME]></label> <br>
-                                <label>Email: <input type=email pattern=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ size=30 name=EMAIL value=$dettagliACCOUNT[EMAIL]></label><br>
-                                <label>Ruolo: <input type=text name=RUOLO value=$dettagliACCOUNT[RUOLO]></label> <br>
-                                <label>Telefono: <input type=text name=TELEFONO value=$dettagliACCOUNT[TELEFONO]></label> <br>
+                    if(isset($_POST[idselect]) && $row[ID] == $_POST[idselect] && $row[USERNAME] == $_POST[userselect] ){
+                        echo "<div id=container style=flex: 48%; margin: 10px; text-align: left;>
+                            <form method=POST action=modificaAccount2.php>
+                                <label>Id: </label>
+                                    <select class='selector' name='ids'>
+                                        <option value=$row[ID]>$row[ID]</option>";
+                                        while($ID = mysqli_fetch_assoc($IDS)){
+                                            echo "<option value=$ID[ID]>$ID[ID]</option>";
+                                        }
+                                    echo "</select> <br>
+                                <label>Username: </label><input class='selector' type=text name=username value=$row[USERNAME]> <br>
+                                <label>Email: </label><input class='selector' type=email name=email pattern=^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ size=30 value=$row[EMAIL]><br>
+                                <label>Ruolo: </label>
+                                <select class='selector' name='ruolo'>
+                                    <option value=$row[RUOLO]>$row[RUOLO]</option>";
+                                    while($RUOLIA = mysqli_fetch_assoc($RUOLI)){
+                                        echo "<option value=$RUOLIA[NOME]>$RUOLIA[NOME]</option>";
+                                    }
+                                echo "</select> <br>
+                                <label>Telefono: </label><input class='selector' type=tel name=telefono value=$row[TELEFONO] minlength=12 maxlength=12> <br>
+                                <input type=\"hidden\" name=\"idselect\" value=\"$row[ID]\">
+                                <input type=\"hidden\" name=\"userselect\" value=\"$row[USERNAME]\">
+                                <input type=\"submit\" value=\"Salva modifiche\">
                             </form>
                         </div> ";
-                    }else{  
-                        echo "<div id='info' >
-                            <label>Id: </label> <br>
-                            <label>Username: </label> <br>
-                            <label>Email: </label> <br>
-                            <label>Ruolo: </label> <br>
-                            <label>Telefono: </label> <br>
-                        </div>
-                        <div id='dati'>
-                            <label>$row[ID]</label> <br>
-                            <label>$row[USERNAME]</label> <br>
-                            <label>$row[EMAIL]</label> <br>
-                            <label>$row[RUOLO]</label> <br>
-                            <label>$row[TELEFONO]</label> <br>
-                        </div>
-                        <div style='flex:100%;'>
-                            <form action=\"modificaAccount2.php\" method=\"POST\">
+
+                    }else if(isset($_POST[pass]) && $_POST[pass]==true && $row[USERNAME]==$_POST[user]){
+                        echo"<div id=container style=flex: 48%; margin: 10px; text-align: left;>
+                            <form method=POST action=modificaAccount2.php>
+                                <label>Password: </label><input class='selector' type=text name=newPass placeholder='Nuova password'> <br>
+                                <input type=hidden name=pass value=true>
+                                <input type=\"hidden\" name=\"user\" value=\"$row[USERNAME]\">
+                                <input type=submit value=Salva password>
+                            </form>
+                        </div>";
+                    }else{
+                        echo "<div id=container style=flex: 48%; margin: 10px; text-align: left;>
+                            <label>ID: $row[ID]</label><br>
+                            <label>Username: $row[USERNAME]</label><br>
+                            <label>Email: $row[EMAIL]</label><br>
+                            <label>Ruolo: $row[RUOLO]</label><br>
+                            <label>Telefono: $row[TELEFONO]</label><br>
+                            <form action=\"modificaAccount.php\" method=\"POST\">
                                 <input type=\"hidden\" name=\"idselect\" value=\"$row[ID]\">
+                                <input type=\"hidden\" name=\"userselect\" value=\"$row[USERNAME]\">
                                 <input type=\"submit\" value=\"Modifica\">
+                            </form>
+                            <form action=\"modificaAccount.php\" method=\"POST\">
+                                <input type=\"hidden\" name=\"pass\" value=\"true\">
+                                <input type=\"hidden\" name=\"user\" value=\"$row[USERNAME]\">
+                                <input type=submit value=\"Modifica password\" style=\"background-color: #cc6600; box-shadow: 0px 5px 0px rgb(190, 30, 00);\">
                             </form>
                         </div>";
                     }
-
-                    $id=$_POST[ID];
-                    $user=$_POST[USERNAME];
-                    $email=$_POST[EMAIL];
-                    $ruolo=$_POST[RUOLO];
-                    $tel=$_POST[TELEFONO];
-
-                    $update="UPDATE ACCOUNT, SEGNALANTE SET ACCOUNT.IDSEGNALANTE=$id, ACCOUNT.USERNAME=$user, SEGNALANTE.EMAIL=$email, SEGNALANTE.TELEFONO=$tel FROM ACCOUNT AS A, SEGNALANTE AS S WHERE A.IDSEGNALANTE=S.ID AND A.IDSEGNALANTE=$_POST[idselect]";
-                    if($connessione->query($update)){
-                        setcookie("validinsert","true",time() + 3000);
-                    }else{
-                        setcookie("validinsert","false",time() + 3000);
-                    }
                 }
-        echo"</div>";
     echo"</div>";
     ?>
 </boby>

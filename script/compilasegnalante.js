@@ -38,6 +38,7 @@ $(document).ready(() => {
                     name: 'via',
                     required: true
                 }).appendTo('div#campi');
+                $('#repselect').hide();
                 break;
             case "C":
                 $('div#campi').empty();
@@ -72,6 +73,7 @@ $(document).ready(() => {
                     name: 'cf',
                     required: true
                 }).appendTo('div#campi');
+                $('#repselect').hide();
                 break;
             case "I":
                 $('div#campi').empty();
@@ -118,13 +120,9 @@ $(document).ready(() => {
                     pattern: "^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$",
                     name: 'dlicenziamento'
                 }).appendTo('div#campi');
+                $('#repselect').show();
                 break;
         }
-        $('<input>').attr({
-            type: 'hidden',
-            id: 'foo',
-            name: 'bar'
-        }).appendTo('form');
     })
 
 })

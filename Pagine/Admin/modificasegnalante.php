@@ -30,25 +30,10 @@
             echo "<header style=\"background-color: rgb(199, 50, 50);\">Aggiornamento fallito, controllare i dati immessi.</header>";
             setcookie('validinsert',"",time() - 3600);
         }
-
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>";
-        }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
         
-        echo "</header>";
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
 
         $servername = "localhost";
         $username = "";
@@ -76,13 +61,10 @@
                     <label>Email</label><br>
                     <input type=\"email\" pattern=\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$\" size=\"30\" name=\"email\" value=\"$row[EMAIL]\" required>
                     <label>Telefono (formato: XXX-XXX-XXXX)</label>
-                    <input type=text name=tel value=$row[TELEFONO]>
+                    <input type=\"tel\" minlength=12 maxlength=12 name=\"tel\" value=\"$row[TELEFONO]\" pattern=\"[0-9]{3}-[0-9]{3}-[0-9]{4}\" required>
                     <input type=\"submit\" value=\"Salva modifiche\">
                     </form>
                 </div>";
-
-                /*comando precedente per textbox per il telefono 
-                <input type=\"tel\" minlength=12 maxlength=12 name=\"tel\" value=\"$row[TELEFONO]\" pattern=\"[0-9]{3}-[0-9]{3}-[0-9]{4}\" required>*/
                 }else{
                 echo "<div id=\"container\" style=\"flex: 48%; margin: 10px; text-align: left;\">
                     <label>ID: $row[ID]</label><br>

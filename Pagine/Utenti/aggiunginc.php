@@ -25,7 +25,7 @@
             exit;
         }
 
-        if(!isset($_POST) || !isset($_POST['rilevante']) || !isset($_POST['origine']) || !isset($_POST['tipo']) || !isset($_POST[prod])){
+        if(!isset($_POST[rilevante]) || (!isset($_POST[orgrep]) && !isset($_POST[orgforn])) || !isset($_POST[tipo])){
             echo "<div id=\"container\"> Operazione non riuscita, parametri invalidi </br> <a href=\"./dashboard.php\">Torna alla dashboard</a></div>";
             exit;
         }
@@ -53,11 +53,14 @@
         $stato = "IN APPROVAZIONE";
         $coinvolti = $_POST['coinvolti'];
         $rilevante = $_POST['rilevante'];
-        $origine = $_POST['origine'];
         $note = htmlspecialchars($_POST['note']);
         $prodotti = $_POST[prod];
 
-        $insertnc_q = "INSERT INTO `SEGNALAZIONE`(`STATO`, `DATACREAZIONE`, `DATACHIUSURA`, `AUTORE`, `TIPO`,`NOTE`) VALUES ('{$stato}','{$opening}',NULL,{$author},{$tipo},'{$note}')";
+        $originefornitore = $_POST['orgforn'] != "" ? $_POST['orgforn'] : "NULL";
+        $originereparto = $_POST['orgrep'] != "" ? $_POST['orgrep'] : "NULL";
+
+        $insertnc_q = "INSERT INTO `SEGNALAZIONE`(`STATO`, `DATACREAZIONE`, `DATACHIUSURA`, `AUTORE`, `TIPO`,`NOTE`,`NCREPARTO`,`NCFORNITORE`) VALUES ('{$stato}','{$opening}',NULL,{$author},{$tipo},'{$note}','$originereparto','$originefornitore')";
+        echo $insertnc_q;
         $result = $connessione->query($insertnc_q);
         $idsegn = mysqli_insert_id($connessione);
         foreach($coinvolti as $c){

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +29,39 @@
 
     $connessione = new mysqli($servername,$username,$password,$dbname);
 
+    if(isset($_POST[delprod])){
+        $deleteq = "DELETE FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE = $_POST[idnc] AND IDPROD = $_POST[idprod]";
+        if($connessione->query($deleteq)){
+            setcookie("validinsert","true",time() + 3000);
+        }else{
+            setcookie("validinsert","false",time() + 3000);
+        }
+        header('location: ./risolviNC.php');
+        exit();
+    }
+
+    if(isset($_POST[chgcoinv]) && isset($_POST[coinvolti])){
+        $deleteq = "DELETE FROM GESTIONENC WHERE IDSEGNALAZIONE=$_POST[id]";
+        $connessione->query($deleteq);
+        foreach($_POST[coinvolti] as $cv){
+            $insertq = "INSERT INTO GESTIONENC(IDSEGNALANTE,IDSEGNALAZIONE) VALUES($cv,$_POST[id])";
+            setcookie("validinsert","true",time() + 3000);
+            if(!$connessione->query($insertq)){
+                setcookie("validinsert","false",time() + 3000);
+                header('location: ./risolviNC.php');
+                exit();
+            }
+        }
+        header('location: ./risolviNC.php');
+        exit();
+    }
+
+    if(isset($_POST[chgcoinv]) xor isset($_POST[coinvolti])){
+        setcookie("validinsert","false",time() + 3000);
+        header('location: ./risolviNC.php');
+        exit();
+    }
+
     $coinvoltoq = "SELECT count(*) AS C FROM GESTIONENC WHERE IDSEGNALANTE = {$_SESSION['idsegn']} AND IDSEGNALAZIONE = {$_POST['id']} }";
     $coinvolto = mysqli_fetch_assoc($connessione->query($coinvoltoq));
     $gradogestionencq = "SELECT GRADOMINIMO FROM SEGNALAZIONE S JOIN NONCONFORMITA N ON S.TIPO=N.ID WHERE S.ID = $_POST[id]";
@@ -45,21 +79,48 @@
     $originefornitore = $_POST['orgforn'] != "" ? $_POST['orgforn'] : "NULL";
     $originereparto = $_POST['orgrep'] != "" ? $_POST['orgrep'] : "NULL";
 
-    $stato = $_POST['stato'];
-
+    $stato= $_POST['stato'];
     $note = $_POST['note'];
 
     if($datachiusura == "NULL"){
-        $updateq = "UPDATE SEGNALAZIONE SET TIPO={$tiponc},DATACHIUSURA={$datachiusura},DATACREAZIONE='{$datacreazione}',NCREPARTO='{$originereparto}',NCFORNITORE={$originefornitore},NOTE='{$note}',STATO='{$stato}' WHERE ID={$_POST['id']}";
+        $updateq = "UPDATE SEGNALAZIONE SET TIPO={$tiponc},DATACHIUSURA={$datachiusura},DATACREAZIONE='{$datacreazione}',"; 
+        if ($originereparto == "NULL"){
+            $updateq .= "NCREPARTO=NULL";
+        }
+        else{
+            $updateq .= "NCREPARTO='{$originereparto}'"; 
+        } 
+        $updateq .= ",NCFORNITORE={$originefornitore},NOTE='{$note}', STATO='{$stato}' WHERE ID={$_POST['id']}";
     }else{
-        $updateq = "UPDATE SEGNALAZIONE SET TIPO={$tiponc},DATACHIUSURA='{$datachiusura}',DATACREAZIONE='{$datacreazione}',NCREPARTO='{$originereparto}',NCFORNITORE={$originefornitore},NOTE='{$note}',STATO='CHIUSA' WHERE ID={$_POST['id']}";
-    }
+        //controllare se la data di fine è maggiore di quella di inizio
+        $datainizio = date_format($datainizio, "m/d/Y");
+        $datafine = date_format($datachiusura, "m/d/Y");
 
+        if($datafine>$datainizio){
+            $updateq = "UPDATE SEGNALAZIONE SET TIPO={$tiponc},DATACHIUSURA='{$datachiusura}',DATACREAZIONE='{$datacreazione}',"; 
+            if ($originereparto == "NULL"){
+                $updateq .= "NCREPARTO=NULL";
+            }else{
+                $updateq.= "NCREPARTO='{$originereparto}'";   
+            }
+            $updateq .=",NCFORNITORE={$originefornitore},NOTE='{$note}',STATO='CHIUSA' WHERE ID={$_POST['id']}";
+        }else{
+            
+        }
+    }
     if($connessione->query($updateq)){
         echo "<div id=\"container\">Segnalazione aggiornata con successo!</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php\">Torna alla dashboard</a></div>";
+        setcookie("validinsert","true",time() + 3000);
+        header('location: ./risolviNC.php');
+        exit();
     }else{
         echo "<div id=\"container\">Si è verificato un errore durante l'aggiornamento, controllare i dati immessi.</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Comuni/risolviNC.php\">Torna alla pagina di risoluzione delle non conformità</a></div>";
+        setcookie("validinsert","false",time() + 3000);
+        header('location: ./risolviNC.php');
+        exit();
     }
+
+
     
 ?>
 </body>

@@ -1,5 +1,7 @@
+var precedentDisplayStyle = "block";
 $(document).ready(() => {
     let currPage = 0;
+	precedentDisplayStyle = $(`div#0.tab`).eq(0).css('display');
     $('div.tab').each(function() {
         $(this).hide(0);
     });
@@ -75,7 +77,7 @@ $(document).ready(() => {
             $(this).css('opacity',0);
             $(this).hide(0)
         });
-        $(`div#${num}.tab`).eq(0).css('display','block');
+        $(`div#${num}.tab`).eq(0).css('display',precedentDisplayStyle);
         $(`div#${num}.tab`).eq(0).css('opacity',1);
         /*setTimeout(() => {
             $(`div.tab`).each(function() {
@@ -86,7 +88,7 @@ $(document).ready(() => {
                     $(this).css('transition-duration','0.3s');
                 })
             });
-            $(`div#${num}.tab`).eq(0).css('display','block');
+            $(`div#${num}.tab`).eq(0).css('display',precedentDisplayStyle);
             $(`div#${num}.tab`).eq(0).css('opacity',1);
         },300);*/
         currPage = num;

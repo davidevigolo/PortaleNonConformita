@@ -48,25 +48,9 @@
         $row = mysqli_fetch_assoc($risultato);
         /*Se la persona è admin allora fa vedere la pagina con tutte le non conformità, 
         altrimenti fa vedere solo quelle che riguardano a quel determinato utente secondo il power del suo ruolo*/
-        echo '<header>';
-        if($_SESSION['role']=='Admin'){ 
-            
-                echo "<ul>
-                    <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                    <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                    ";
-        }
-    
-        echo "
-        <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-        <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-        <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-        <li style=\"float:right;\">{$_SESSION['username']}</li>  
-        <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-        </ul>";
-        
-         echo "</header>";
+        require_once('../header.php');
+        $header = new Header();
+        $header->render($_SESSION[role],$_SESSION[username]);
 ?>
     <div id="container">
         <form action="./aggiunginc.php" method="POST">
@@ -110,21 +94,26 @@
                     }                    
                 ?>
             </select>
-            <label>Origine</label>
-            <select class="selector" name="origine">
+            <label>Reparto di origine della non conformità</label>
+            <select class="selector" name="orgrep">
                 <?php
-                    $repq = "SELECT * FROM REPARTO";
-                    $fornq = "SELECT * FROM FORNITORE";    
+                    $repq = "SELECT * FROM REPARTO";  
                     $repr = $connessione->query($repq);
-                    $fornr = $connessione->query($fornq);
-                    echo "<option value='' disabled selected>Fornitori</option>";
-                    while($row = mysqli_fetch_assoc($fornr)){
-                        echo "<option value=\"{$row['IDSEGNALANTE']}\">{$row['DENOMINAZIONE']} PIVA: {$row['PIVA']}</option>";
-                    } 
                     echo "<option value='' disabled selected>Reparti</option>";
                     while($row = mysqli_fetch_assoc($repr)){
                         echo "<option value=\"{$row['NOME']}\">Reparto: {$row['NOME']}</option>";
                     }                    
+                ?>
+            </select>
+            <label>Fornitore di origine della non conformità</label>
+            <select class="selector" name="orgforn">
+                <?php
+                    $fornq = "SELECT * FROM FORNITORE";
+                    $fornr = $connessione->query($fornq);
+                    echo "<option value='' disabled selected>Fornitori</option>";
+                    while($row = mysqli_fetch_assoc($fornr)){
+                        echo "<option value=\"{$row['IDSEGNALANTE']}\">{$row['DENOMINAZIONE']} PIVA: {$row['PIVA']}</option>";
+                    }                   
                 ?>
             </select>
         </div>

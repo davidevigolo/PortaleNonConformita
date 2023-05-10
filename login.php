@@ -35,12 +35,13 @@
                     $_SESSION['expires'] = time() + (3600);
                     $_SESSION['username'] = $username;
 
-                    $q = "SELECT A.RUOLO AS RUOLO,A.IDSEGNALANTE AS IDSEGN,R.GRADOGESTIONE AS GRADOGEST FROM ACCOUNT A JOIN RUOLO R ON A.RUOLO=R.NOME WHERE A.USERNAME = '$_SESSION[username]'";
+                    $q = "SELECT A.RUOLO AS RUOLO,A.IDSEGNALANTE AS IDSEGN,R.GRADOGESTIONE AS GRADOGEST, S.TIPO AS TIPO FROM ACCOUNT A JOIN RUOLO R ON A.RUOLO=R.NOME JOIN SEGNALANTE S ON S.ID=A.IDSEGNALANTE WHERE A.USERNAME = '$_SESSION[username]'";
                     
                     $ruolo = mysqli_query($connessione,$q);
                     $ruolo = mysqli_fetch_assoc($ruolo);
                     $role = $ruolo[RUOLO];
                     $_SESSION['role'] = $role;
+                    $_SESSION['tipo'] = $ruolo[TIPO];
                     $_SESSION['idsegn'] = $ruolo[IDSEGN];
                     $_SESSION['wrongpass'] = false;
                     $_SESSION['gradominimo'] = $ruolo[GRADOGEST];

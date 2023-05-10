@@ -19,8 +19,9 @@
         echo "<header style=\"background-color: rgb(199 50 50);\">Sessione invalida, rieffettuare l'accesso.</header>";
         exit;
     }
-    if($_SESSION[role] != "Admin"){
-        header('location: bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
+    if($_SESSION['role'] != "Admin"){
+        header("location: ./Pagine/Utenti/dashboard.php");
+        exit;
     }
     
     $servername = "localhost";
@@ -34,7 +35,7 @@
         die("Connessione fallita: " . $conn->connect_error);
     }
 
-    if(!isset($_POST[lotto]) || !isset($_POST[sku])){
+    if(!isset($_POST[sku]) || !isset($_POST[lotto])){
         setcookie("validinsert","false", time() + 3000);
         header('location: ./compilaprodotto.php');
         exit;
@@ -42,7 +43,7 @@
     $sku = $_POST[sku];
     $lotto = $_POST[lotto];
     
-    $insertq = "INSERT INTO PRODOTTO(LOTTO,TIPO) VALUES($lotto,$sku)";
+    $insertq = "INSERT INTO PRODOTTO(TIPO,LOTTO) VALUES($sku,$lotto)";
     echo $insertq;
     
     if($connessione->query($insertq)){

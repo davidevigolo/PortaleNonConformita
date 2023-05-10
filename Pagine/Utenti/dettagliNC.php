@@ -15,22 +15,6 @@
             align-items:baseline;
         }
 
-        /* #container{  CSS
-            display: flex;
-            flex-direction:row;
-            justify-content: space-evenly;
-            width: 80%;
-            border: 1px solid black;
-            border-radius: 10px;
-            background-color: white;
-            box-shadow: 2px 2px 5px black;
-            padding: 30px;
-            margin: auto;
-            backdrop-filter: blur(10px);
-            background-color: transparent;
-            overflow: hidden;
-        } */
-
         @media screen and (max-width: 990px){
             #container{
                 flex-direction: column;
@@ -43,7 +27,7 @@
             text-align: left;
             padding: 7px;
             padding-right: 15px;
-            flex:20%;
+            flex:40%;
         }
 
         #dati{
@@ -51,6 +35,7 @@
             padding: 7px;
             flex:50%;
         }
+
     </style>
 </head>
 <boby>
@@ -81,29 +66,12 @@
         die("Connessione fallita: " . $conn->connect_error);
     }
     $nomeutente= $_SESSION['username'];
-    echo '<header>';
-    if($_SESSION['role']=='Admin'){ 
-        
-            echo "<ul>
-                <li style=\"float:left;\"><a href=\"../Admin/registeracc.php\">Registra Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/modificaAccount.php\">Gestisci Account</a></li>
-                <li style=\"float:left;\"><a href=\"../Admin/registersegnalante.php\">Registra segnalante</a></li>
-                ";
-    }
-
-    echo "
-    <li style=\"float:left;\"><a href=\"../Comuni/risolviNC.php\">Risolvi N.C.</a></li>
-    <li style=\"float:left;\"><a href=\"../Comuni/visualizzaNC.php\">Visualziza N.C.</a></li>
-    <li style=\"float:left;\"><a href=\""; if($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Dirigente') echo "../Utenti/dashboard.php"; else echo "../Dirigenti/dashboarddirigenti.php"; echo "\">Dashboard</a></li>
-    <li style=\"float:right;\">{$_SESSION['username']}</li>  
-    <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
-    </ul>";
-    
-     echo "</header>";
+    require_once('../header.php');
+    $header = new Header();
+    $header->render($_SESSION[role],$_SESSION[username]);
 
     /*Query:*/
-
-    $dettagliSEGNALAZIONE = "SELECT * FROM SEGNALAZIONE WHERE ID = {$_GET['COD']}";
+    $dettagliSEGNALAZIONE = "SELECT * FROM SEGNALAZIONE WHERE ID = {$_POST['ID']}";
     $dettagliSEGNALAZIONE = mysqli_query($connessione, $dettagliSEGNALAZIONE);
     $dettagliSEGNALAZIONE = mysqli_fetch_assoc($dettagliSEGNALAZIONE);
     $TipoNC = $dettagliSEGNALAZIONE['TIPO'];
@@ -112,7 +80,7 @@
     $dettagliNONCONFORMITA = mysqli_query($connessione, $dettagliNONCONFORMITA);
     $dettagliNONCONFORMITA = mysqli_fetch_assoc($dettagliNONCONFORMITA);
 
-    $dettagliAZIONECORRETTIVA = "SELECT * FROM AZIONECORRETTIVA AS AC JOIN SEGNALAZIONE AS S ON AC.IDSEGNALAZIONE=S.ID WHERE IDSEGNALAZIONE={$_GET['COD']}";
+    $dettagliAZIONECORRETTIVA = "SELECT * FROM AZIONECORRETTIVA AS AC JOIN SEGNALAZIONE AS S ON AC.IDSEGNALAZIONE=S.ID WHERE IDSEGNALAZIONE={$_POST['ID']}";
     $dettagliAZIONECORRETTIVA = mysqli_query($connessione, $dettagliAZIONECORRETTIVA);
 
     echo '<div id="title">Dettagli</div>';
@@ -125,7 +93,7 @@
                         <label>Codice: </label> <br>
                         <label>Data Creazione: </label> <br>
                         <label>Data Chiusura: </label> <br>
-                        <label>Creatore: </label> <br>
+                        <label>Autore: </label> <br>
                         <label>Stato: </label> <br>
                         <label>Reparto: </label> <br>
                         <label>Fornitore: </label> <br>
@@ -180,27 +148,5 @@
         echo"</div>";
     echo"</div>";
     ?>
-    <!--Attributi:
-        SEGNALAZIONE:
-                ID as Codice
-                DATACREAZIONE
-                DATACHIUSURA
-                AUTORE as Creatore
-                STATO
-                NCREPARTO 
-                NCFORNITORE 
-                NOTE
-        NONCONFORMITA:
-                ID as Codice 
-                GRADOMINIMO as Grado Minimo
-                DESCRIZIONE NC as Note
-                NOME 
-        AZIONECORETTIVA:
-                NUMERO  as Codice
-                DATAINIZIO
-                DATAFINE
-                DESCRIZIONE
-                ESEGUENTE
-    -->
 </boby>
 </html>

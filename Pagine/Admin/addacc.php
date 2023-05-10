@@ -51,10 +51,11 @@
         $userpdo_q = "INSERT INTO `ACCOUNT`(`USERNAME`, `PASSWORD`, `RUOLO`, `IDSEGNALANTE`) values('{$username}','{$password}','{$ruolo}',{$id}) ";
         $userpdo = $connessione->query($userpdo_q);
         if($userpdo){
-            echo "Registrazione avvenuta con successo!";
+            setcookie("validinsert","true", time() + 3000);
         }else{
-            echo "Registrazione fallita, utente già esistente.";
+            setcookie("validinsert","false", time() + 3000);
         }
+        header('location: ./registeracc.php');
 
     
 ?>
