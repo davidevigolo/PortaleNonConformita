@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
     <title>PortaleNC - Aggiungi N.C.</title>
 </head>
 <body>
@@ -60,32 +66,45 @@
         $originereparto = $_POST['orgrep'] != "" ? $_POST['orgrep'] : "NULL";
 
         $insertnc_q = "INSERT INTO `SEGNALAZIONE`(`STATO`, `DATACREAZIONE`, `DATACHIUSURA`, `AUTORE`, `TIPO`,`NOTE`,`NCREPARTO`,`NCFORNITORE`) VALUES ('{$stato}','{$opening}',NULL,{$author},{$tipo},'{$note}','$originereparto','$originefornitore')";
-        echo $insertnc_q;
         $result = $connessione->query($insertnc_q);
         $idsegn = mysqli_insert_id($connessione);
-        foreach($coinvolti as $c){
-            $insertcq = "INSERT INTO GESTIONENC(IDSEGNALANTE,IDSEGNALAZIONE) VALUES($c,$idsegn)";
-            echo $insertcq;
-            if(!$connessione->query($insertcq)){
-                echo "<div id=\"container\"> Operazione non riuscita, parametri invalidi </br> <a href=\"./dashboard.php\">Torna alla dashboard</a></div>";
-                foreach($coinvolti as $c){ // NON SAPPIAMO ANCORA FARE LE TRANSAZIONI ACID 
-                    $deleteq = "DELETE FROM GESTIONENC WHERE IDSEGNALANTE=$c AND IDSEGNALAZIONE=$idsegn; DELETE FROM SEGNALAZIONE WHERE ID=$idsegn";
-                    $connessione->query($delteq);
-                }
-                exit();
+
+        $connessione->begin_transaction();
+
+        try
+        {
+            foreach($coinvolti as $c){
+                $insertcq = "INSERT INTO GESTIONENC(IDSEGNALANTE,IDSEGNALAZIONE) VALUES($c,$idsegn)";
+                $connessione->query($insertcq);
+                /*if(!$connessione->query($insertcq)){
+                    echo "<div id=\"container\"> Operazione non riuscita, parametri invalidi </br> <a href=\"./dashboard.php\">Torna alla dashboard</a></div>";
+                    foreach($coinvolti as $c){ // NON SAPPIAMO ANCORA FARE LE TRANSAZIONI ACID 
+                        $deleteq = "DELETE FROM GESTIONENC WHERE IDSEGNALANTE=$c AND IDSEGNALAZIONE=$idsegn; DELETE FROM SEGNALAZIONE WHERE ID=$idsegn";
+                        $connessione->query($delteq);
+                        $connessione->rollback();
+                    }
+                    exit();
+                }*/
             }
-        }
-        foreach($prodotti as $p){
-            $insprodsegnq = "INSERT INTO SEGNALAZIONEPROD(IDSEGNALAZIONE,IDPROD) VALUES($idsegn,$p)";
-            if(!$connessione->query($insprodsegnq)){
-                echo "<div id=\"container\"> Operazione non riuscita, parametri invalidi </br> <a href=\"./dashboard.php\">Torna alla dashboard</a></div>";
-                foreach($coinvolti as $c){ // NON SAPPIAMO ANCORA FARE LE TRANSAZIONI ACID 
-                    $deleteq = "DELETE FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE=$idsegn; DELETE FROM SEGNALAZIONE WHERE ID=$idsegn";
-                    $connessione->query($delteq);
-                }
-                exit();
+            foreach($prodotti as $p){
+                $insprodsegnq = "INSERT INTO SEGNALAZIONEPROD(IDSEGNALAZIONE,IDPROD) VALUES($idsegn,$p)";
+                $connessione->query($insprodsegnq);
+                /*if(!$connessione->query($insprodsegnq)){
+                    echo "<div id=\"container\"> Operazione non riuscita, parametri invalidi </br> <a href=\"./dashboard.php\">Torna alla dashboard</a></div>";
+                    foreach($coinvolti as $c){ // NON SAPPIAMO ANCORA FARE LE TRANSAZIONI ACID 
+                        $deleteq = "DELETE FROM SEGNALAZIONEPROD WHERE IDSEGNALAZIONE=$idsegn; DELETE FROM SEGNALAZIONE WHERE ID=$idsegn";
+                        $connessione->query($delteq);
+                        $connessione->rollback();
+                    }
+                    exit();
+                }*/
             }
+
+            $connessione->commit();
+        } catch (mysqli_sql_exception $exception) {
+            $connessione->rollback();
         }
+
         header('location: http://bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php');
 
 ?>

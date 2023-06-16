@@ -8,10 +8,15 @@
     <link rel="icon" type="image/x-icon" href="./img/favicon.jpg">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="./script/index.js"></script>
+    <link rel="preload" as="script" href="https://cdn.iubenda.com/cs/iubenda_cs.js"/>
     <title>PortaleNC - Login</title>
     <style>
         header{
             background-color: transparent;
+        }
+
+        input[type="checkbox"]:hover{
+            transform: none;
         }
     </style>
 </head>
@@ -37,6 +42,7 @@
                 }
             }
             ?>
+            <div style="height: 50px; line-height: 45px; text-align: left;"><input type="checkbox" name="rememberme" style="margin-right: 10px; box-shadow: none; float: left; width: 15px; height: 15px;"> Remember me </br></div>
             <input type="submit" action="login.php" style="text-align: center">
         </form>
         <img src="./img/login.png">

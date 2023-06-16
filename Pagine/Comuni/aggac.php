@@ -22,7 +22,13 @@
 
 
 
-    <link rel="stylesheet" href="../../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
 
 
 

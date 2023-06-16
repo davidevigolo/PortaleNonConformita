@@ -22,7 +22,13 @@ if($_SESSION[role] != "Dirigente" && $_SESSION[role] != "Admin"){
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PortaleNC - Report</title>
-    <link rel="stylesheet" href="../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
     <style>
         table{
             background-color: white;

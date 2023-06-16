@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
     <title>PortaleNC - ModificaNC</title>
 </head>
 <body>

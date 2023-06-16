@@ -12,7 +12,13 @@ if($_SESSION[tipo] != I && $_SESSION[role] != "Caporeparto"){
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="../Utenti/coinvolti.js"></script>
     <title>Risolvi NC</title>
@@ -31,7 +37,7 @@ if($_SESSION[tipo] != I && $_SESSION[role] != "Caporeparto"){
             border: 2px solid green;
             border-radius: 5px;
             margin: 3px;
-            box-shadow: 0px 0px 90px 20px rgb(40,40,40) inset; 
+            box-shadow: 0px 0px 90px 20px rgb(40,40,40) <?php if($_COOKIE['colormode'] == 'b'){ echo "#dddddd;"; }else{ echo "inset;"; }?>
             padding: 10px;
         }
         select.selector#first{
@@ -106,7 +112,7 @@ if($_SESSION[tipo] != I && $_SESSION[role] != "Caporeparto"){
             <select name="idnc" class="selector" style="width:100%">
                 <?php
                 if($_SESSION['role']=='Dirigente'||$_SESSION['role']=='Caporeparto'||$_SESSION['role']=='Admin'){
-                    $nonconformitaq = "SELECT DISTINCT S.ID,NC.NOME,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID JOIN GESTIONENC G ON G.IDSEGNALAZIONE=S.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND S.AUTORE IS NOT NULL OR G.IDSEGNALANTE=$_SESSION[idsegn] OR S.NCREPARTO=(SELECT REPARTO FROM IMPIEGATO WHERE IDSEGNALANTE=$_SESSION[idsegn]) ORDER BY S.ID ASC";
+                    $nonconformitaq = "SELECT DISTINCT S.ID,NC.NOME,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID LEFT JOIN GESTIONENC G ON G.IDSEGNALAZIONE=S.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND S.AUTORE IS NOT NULL OR ( G.IDSEGNALANTE=$_SESSION[idsegn] OR S.NCREPARTO=(SELECT REPARTO FROM IMPIEGATO WHERE IDSEGNALANTE=$_SESSION[idsegn]) ) ORDER BY S.ID ASC";
                 }else{
                     $nonconformitaq = "SELECT DISTINCT S.ID,NC.NOME,S.NCREPARTO,S.NCFORNITORE,S.AUTORE FROM SEGNALAZIONE S JOIN NONCONFORMITA NC ON S.TIPO=NC.ID JOIN GESTIONENC G ON G.IDSEGNALAZIONE=S.ID WHERE NC.GRADOMINIMO <= $_SESSION[gradominimo] AND STATO='APERTA' OR G.IDSEGNALANTE=$_SESSION[idsegn] ORDER BY S.ID ASC";
                 }
