@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../style/dashboard.css">
+    <?php
+    if($_COOKIE['colormode'] == 'b'){
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboardb.css\">";
+    }else{
+        echo "<link rel=\"stylesheet\" href=\"../../style/dashboard.css\">";
+    }
+    ?>
     <title>PortaleNC - ModificaNC</title>
 </head>
 <body>
@@ -93,10 +99,10 @@
         $updateq .= ",NCFORNITORE={$originefornitore},NOTE='{$note}', STATO='{$stato}' WHERE ID={$_POST['id']}";
     }else{
         //controllare se la data di fine è maggiore di quella di inizio
-        $datainizio = date_format($datainizio, "m/d/Y");
-        $datafine = date_format($datachiusura, "m/d/Y");
+        //$datainizio = date_format($datacreazione, "m/d/Y");
+        //$datafine = date_format($datachiusura, "m/d/Y");
 
-        if($datafine>$datainizio){
+        if($datachiusura>$datacreazione){
             $updateq = "UPDATE SEGNALAZIONE SET TIPO={$tiponc},DATACHIUSURA='{$datachiusura}',DATACREAZIONE='{$datacreazione}',"; 
             if ($originereparto == "NULL"){
                 $updateq .= "NCREPARTO=NULL";
@@ -104,17 +110,15 @@
                 $updateq.= "NCREPARTO='{$originereparto}'";   
             }
             $updateq .=",NCFORNITORE={$originefornitore},NOTE='{$note}',STATO='CHIUSA' WHERE ID={$_POST['id']}";
-        }else{
-            
         }
     }
     if($connessione->query($updateq)){
-        echo "<div id=\"container\">Segnalazione aggiornata con successo!</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php\">Torna alla dashboard</a></div>";
+        //echo "<div id=\"container\">Segnalazione aggiornata con successo!</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Utenti/dashboard.php\">Torna alla dashboard</a></div>";
         setcookie("validinsert","true",time() + 3000);
         header('location: ./risolviNC.php');
         exit();
     }else{
-        echo "<div id=\"container\">Si è verificato un errore durante l'aggiornamento, controllare i dati immessi.</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Comuni/risolviNC.php\">Torna alla pagina di risoluzione delle non conformità</a></div>";
+        //echo "<div id=\"container\">Si è verificato un errore durante l'aggiornamento, controllare i dati immessi.</br> <a href=\"https://bicicletta22235id.altervista.org/Pagine/Comuni/risolviNC.php\">Torna alla pagina di risoluzione delle non conformità</a></div>";
         setcookie("validinsert","false",time() + 3000);
         header('location: ./risolviNC.php');
         exit();

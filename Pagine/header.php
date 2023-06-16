@@ -42,7 +42,7 @@ class Header{
                  echo "../Utenti/dashboard.php";
         } echo "\">Dashboard</a></li>
         <li style=\"float:left;\"><a href=\"../Dirigenti/creareport.php\">Crea report PDF</a></li>
-        <li style=\"float:right;\">{$username}</li>  
+        <li style=\"float:right;\"><a href=\"../Comuni/settings.php\">{$username}</a></li>  
         <li style=\"float: right;\"><a href=\"../Disconnessione/disconnetti.php\">Disconnettiti</a></li>
         </ul>";
         
