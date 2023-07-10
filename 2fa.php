@@ -55,6 +55,9 @@ if(isset($_POST[otp])){
     <div id="container" style="text-align: center;">
         <form action ="2fa.php" method="POST" style="margin: auto;">
         <div id="subtitle" style="margin-bottom: 20px; text-align: center;">Verifica la tua identità: </div>
+        <?php
+            echo"$_SESSION[twofauth]";
+        ?>
             <label>OTP</label>
             <input type="text" name="otp" value="" placeholder="XXXXXX" required>
             <input type="submit" value="Verifica">
